@@ -1,0 +1,215 @@
+// PipeSafe Analytics - Hazardous Liquid Pipeline Incident Management System
+// Paste into https://dbdiagram.io to edit or re-export the ER diagram.
+
+Project PipeSafe {
+  database_type: 'PostgreSQL'
+  Note: 'MIT 8103 Portfolio 1 - normalised (3NF) schema built from PHMSA hazardous liquid accident data, 2010-2026'
+}
+
+// ---------------- Operators and facilities ----------------
+Table operator {
+  operator_id integer [pk, note: 'PHMSA operator ID']
+  operator_name varchar(150) [not null, note: 'name on most recent report']
+  street_address varchar(150)
+  city varchar(80)
+  state_province varchar(30)
+  postal_code varchar(10)
+}
+
+Table operator_name_history {
+  operator_id integer [pk, ref: > operator.operator_id]
+  operator_name varchar(150) [pk]
+  first_report_date date [not null]
+  last_report_date date [not null]
+}
+
+Table facility {
+  facility_id serial [pk]
+  operator_id integer [not null, ref: > operator.operator_id]
+  facility_name varchar(200) [not null]
+  indexes {
+    (operator_id, facility_name) [unique]
+  }
+}
+
+// ---------------- Location ----------------
+Table state {
+  state_code char(2) [pk]
+  state_name varchar(40) [not null, unique]
+  region varchar(20) [not null, note: 'U.S. Census region']
+}
+
+Table county {
+  county_id serial [pk]
+  state_code char(2) [not null, ref: > state.state_code]
+  county_name varchar(80) [not null]
+  indexes {
+    (state_code, county_name) [unique]
+  }
+}
+
+Table offshore_location {
+  report_number bigint [pk, ref: - accident.report_number]
+  origin varchar(60) [not null]
+  adjacent_state_code char(2) [ref: > state.state_code]
+  area_name varchar(80)
+  block_number varchar(30)
+  water_depth_ft numeric(8,1)
+  ocs_region varchar(60)
+}
+
+// ---------------- Central table ----------------
+Table accident {
+  report_number bigint [pk, note: 'PHMSA report number']
+  report_type varchar(20) [not null]
+  report_received_date date [not null]
+  operator_id integer [not null, ref: > operator.operator_id]
+  facility_id integer [ref: > facility.facility_id]
+  segment_name varchar(200)
+  on_off_shore varchar(8) [not null]
+  county_id integer [ref: > county.county_id]
+  city_name varchar(80)
+  latitude numeric(9,6) [not null]
+  longitude numeric(9,6) [not null]
+  accident_datetime timestamp [not null]
+  time_zone varchar(10)
+  pipe_facility_type varchar(10) [not null]
+  system_part_id smallint [not null, ref: > system_part.system_part_id]
+  item_involved_id smallint [not null, ref: > item_involved.item_involved_id]
+  installation_year smallint
+  detection_method_id smallint [ref: > detection_method.detection_method_id]
+  commodity_subtype_id smallint [not null, ref: > commodity_subtype.commodity_subtype_id]
+  release_type varchar(25) [not null]
+  unintentional_release_bbls numeric(12,2) [not null]
+  intentional_release_bbls numeric(12,2)
+  recovered_bbls numeric(12,2) [not null, default: 0]
+  ignited boolean [not null, default: false]
+  exploded boolean
+  shutdown_required boolean
+  public_evacuated integer
+  cause_detail_id smallint [not null, ref: > cause_detail.cause_detail_id]
+  narrative text
+}
+
+// ---------------- Lookups ----------------
+Table commodity_type {
+  commodity_type_id smallserial [pk]
+  type_name varchar(120) [not null, unique]
+}
+
+Table commodity_subtype {
+  commodity_subtype_id smallserial [pk]
+  commodity_type_id smallint [not null, ref: > commodity_type.commodity_type_id]
+  subtype_name varchar(120) [not null]
+  indexes {
+    (commodity_type_id, subtype_name) [unique]
+  }
+}
+
+Table cause_category {
+  cause_category_id smallserial [pk]
+  category_name varchar(60) [not null, unique]
+}
+
+Table cause_detail {
+  cause_detail_id smallserial [pk]
+  cause_category_id smallint [not null, ref: > cause_category.cause_category_id]
+  detail_name varchar(200) [not null]
+  indexes {
+    (cause_category_id, detail_name) [unique]
+  }
+}
+
+Table system_part {
+  system_part_id smallserial [pk]
+  part_name varchar(120) [not null, unique]
+}
+
+Table item_involved {
+  item_involved_id smallserial [pk]
+  item_name varchar(80) [not null, unique]
+}
+
+Table detection_method {
+  detection_method_id smallserial [pk]
+  method_name varchar(150) [not null, unique]
+}
+
+// ---------------- Casualties and costs ----------------
+Table casualty {
+  report_number bigint [pk, ref: > accident.report_number]
+  person_group varchar(20) [pk]
+  fatalities smallint [not null, default: 0]
+  injuries smallint [not null, default: 0]
+}
+
+Table cost_type {
+  cost_type_id smallserial [pk]
+  cost_code varchar(30) [not null, unique]
+  description varchar(150) [not null]
+}
+
+Table accident_cost {
+  report_number bigint [pk, ref: > accident.report_number]
+  cost_type_id smallint [pk, ref: > cost_type.cost_type_id]
+  amount_usd numeric(14,2) [not null]
+}
+
+// ---------------- Cause-specific detail (1:1 specialisation) ----------------
+Table corrosion_detail {
+  report_number bigint [pk, ref: - accident.report_number]
+  visual_exam_result varchar(20)
+  under_cathodic_protection boolean
+  externally_coated boolean
+  corrosion_inhibitors_used boolean
+  prior_damage varchar(40)
+}
+
+Table excavation_detail {
+  report_number bigint [pk, ref: - accident.report_number]
+  excavator_type varchar(60) [not null]
+  excavator_equipment varchar(60) [not null]
+  work_performed varchar(80) [not null]
+  one_call_notified boolean [not null]
+  prior_notification boolean
+  root_cause_category varchar(60)
+}
+
+Table incorrect_operation_detail {
+  report_number bigint [pk, ref: - accident.report_number]
+  activity_category varchar(80)
+  operator_qualified boolean
+  inadequate_procedure boolean [not null, default: false]
+  no_procedure boolean [not null, default: false]
+  failure_to_follow_procedure boolean [not null, default: false]
+}
+
+TableGroup operators_and_facilities {
+  operator
+  operator_name_history
+  facility
+}
+TableGroup location {
+  state
+  county
+  offshore_location
+}
+TableGroup lookups {
+  commodity_type
+  commodity_subtype
+  cause_category
+  cause_detail
+  system_part
+  item_involved
+  detection_method
+  cost_type
+}
+TableGroup consequences {
+  casualty
+  accident_cost
+}
+TableGroup cause_details {
+  corrosion_detail
+  excavation_detail
+  incorrect_operation_detail
+}
