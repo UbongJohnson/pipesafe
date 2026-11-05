@@ -124,7 +124,10 @@ class Runner:
     def dsn(self):
         a = self.args
         d = f"dbname={a.dbname} user={a.user} host={a.host} port={a.port}"
-        return d + (f" password={a.password}" if a.password else "")
+        if not a.password:
+            return d
+        quoted = a.password.replace("\\", "\\\\").replace("'", "\\'")   # libpq quoting: any character is safe
+        return d + f" password='{quoted}'"
 
     def query_value(self, sql, db):
         """Run one query quietly; return (ok, first value or error text)."""
@@ -162,7 +165,9 @@ class Runner:
     def shown(self, cmd):
         text = " ".join(f'"{c}"' if " " in c else c for c in cmd)
         if self.args.password:
-            text = text.replace(self.args.password, "********")
+            pw = self.args.password
+            for form in (pw.replace("\\", "\\\\").replace("'", "\\'"), pw):   # quoted form (in dsn) first
+                text = text.replace(form, "********")
         if self.args.mongo:
             text = text.replace(self.args.mongo, "mongodb+srv://********")
         return text.replace(sys.executable, "python").replace(self.psql_path(), "psql")
