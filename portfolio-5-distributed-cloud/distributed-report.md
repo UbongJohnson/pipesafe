@@ -209,6 +209,8 @@ The region choice is deliberate: most PipeSafe queries are regional, and pruning
 
 **MongoDB Atlas (Portfolio 4) is already distributed.** Every Atlas cluster, including the free tier, is a **3-node replica set**. `scripts/atlas_replica_check.py` shows its members and primary. It reads with `secondaryPreferred` and compares write times for `w=1` (primary only) against `w="majority"` (2 of 3 nodes). This is the same latency-vs-consistency choice as R4, made per operation.
 
+Result (`results/atlas_replica_check.log`, MongoDB 8.0.37): 3 members with one primary; a `secondaryPreferred` read counted all 6,052 accidents. The median insert took **129.3 ms with `w=1`** and **131.6 ms with `w="majority"`**. Waiting for a second node cost only about 2 ms, because almost all of the time is the network round trip from the client to the cloud. The replicas sit close to each other in the same region, so confirming a write on a second node is cheap compared with reaching the cluster at all.
+
 **Recommended PipeSafe deployment:**
 1. Managed PostgreSQL with high availability: a primary and **2 synchronous standbys (`ANY 1`) in different zones**, with automatic failover.
 2. One **asynchronous read replica** for analysts and dashboards.

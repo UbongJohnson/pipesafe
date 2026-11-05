@@ -1,0 +1,7 @@
+accidents collection created WITH schema validator
+loaded: 6052 accidents, 361 operators
+index created: operator + date
+index created: state + date
+index created: cause
+index created: total cost
+index created: location (2dsphere)

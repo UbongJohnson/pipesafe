@@ -101,15 +101,15 @@ The **core** is enforced, while `cause.answers`, `environment` and `inspection_h
 |---|---|---|
 | Build documents from the raw PHMSA file | `scripts/build_documents.py` | 6,052 accident and 361 operator documents; median accident document 2.4 KB, largest 7.5 KB |
 | Check every document against the validator rules | `scripts/check_documents.py` | 6,052 checked, **0 problems** |
-| Load into a MongoDB-compatible server, create indexes | `scripts/load_mongodb.py` | Loaded; 4 of 5 indexes created (see below) |
-| Run all 10 queries | `scripts/run_queries.py`, `queries.js` | `results/query_results_ferretdb.txt` |
-| Re-run queries on a second engine | `scripts/test_with_mongomock.py` | `results/query_results_mongomock.txt` |
+| Load into MongoDB Atlas, create indexes | `scripts/load_mongodb.py` | Collection created **with** the `$jsonSchema` validator; 6,052 accidents and 361 operators loaded; **all 5 indexes** created, including `2dsphere` |
+| Run all 10 queries on Atlas | `scripts/run_queries.py`, `queries.js` | `results/query_results_atlas.txt`: all 10 correct |
+| Earlier test runs (see below) | `scripts/run_queries.py`, `scripts/test_with_mongomock.py` | `results/query_results_ferretdb.txt`, `results/query_results_mongomock.txt` |
 
-**Test servers used.** The MongoDB download site was not reachable from the build environment, so the scripts were tested on two MongoDB-compatible engines:
-- **FerretDB 1.24**, an open-source server that speaks MongoDB's protocol and stores data in PostgreSQL. It loaded the data and indexes and ran N1, N2, N5, N7, N8 and N9 correctly. It does not support schema validators, `2dsphere` indexes, `$objectToArray` or `$geoWithin`. It also returned 0 for `$sum` over nested fields (N3, N4), which is a known gap in that version.
-- **mongomock 4.3**, an in-memory implementation of MongoDB's query engine. It ran every query except the geospatial one (N10) with correct results.
+**Final evidence: MongoDB Atlas** (free M0 tier, MongoDB 8.0.37, 3-node replica set). Every feature the design relies on worked there: the schema validator, all five indexes, `$objectToArray` (N6) and `$geoWithin` (N10). N10 returned **178** accidents within 25 km of Cushing, matching the answer calculated independently beforehand with the haversine distance formula.
 
-**The final evidence comes from MongoDB Atlas** (free tier). All features used are standard MongoDB, so all ten queries are expected to run there. For N10, the expected answer of **178** was calculated independently with the haversine distance formula.
+**Earlier test engines.** Before Atlas was available, the scripts were tested on two MongoDB-compatible engines. Their gaps show why the final run had to be on real MongoDB:
+- **FerretDB 1.24**, an open-source server that speaks MongoDB's protocol and stores data in PostgreSQL. It ran N1, N2, N5, N7, N8 and N9 correctly, but does not support schema validators, `2dsphere` indexes, `$objectToArray` or `$geoWithin`, and returned 0 for `$sum` over nested fields (N3, N4).
+- **mongomock 4.3**, an in-memory implementation of MongoDB's query engine. It ran every query except the geospatial one (N10), with the same results as Atlas.
 
 ### Cross-check with PostgreSQL
 
@@ -117,8 +117,8 @@ The same questions asked of both databases give the same answers:
 
 | Question | PostgreSQL (Portfolios 1–2) | MongoDB (N-query) | Match |
 |---|---|---|---|
-| Accidents, barrels and cost per cause category (8 rows) | e.g. Material failure: 406 / 329,358.14 bbl / $2,223,458,394 | N3: identical for all 8 categories (mongomock; FerretDB returns 0 for nested `$sum`) | ✔ |
-| Fatalities/injuries by group | Other worker 6/7, Public 6/5, Contractor 3/32, Employee 1/2 | N4: identical (mongomock; FerretDB returns 0 for nested `$sum`) | ✔ |
+| Accidents, barrels and cost per cause category (8 rows) | e.g. Material failure: 406 / 329,358.14 bbl / $2,223,458,394 | N3 on Atlas: identical for all 8 categories | ✔ |
+| Fatalities/injuries by group | Other worker 6/7, Public 6/5, Contractor 3/32, Employee 1/2 | N4 on Atlas: identical | ✔ |
 | External corrosion without cathodic protection, by state | TX 7, CA 5, NJ 2, WY 2, AR/IL/MI/PA 1 | N2: identical | ✔ |
 | Narratives mentioning "frozen" | 36 (Portfolio 2 Q6) | N9: 36 | ✔ |
 | Total cost of all accidents | $4,619,299,360 | Sum of `total_cost_usd`: $4,619,299,360 | ✔ |

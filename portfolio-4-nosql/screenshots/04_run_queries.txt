@@ -1,0 +1,181 @@
+==============================================================================
+N1. Complete record of accident 20170094 in one read
+Operator, location, commodity, release, casualties, costs and cause answers
+all come back together. The relational model joins about 11 tables for this.
+------------------------------------------------------------------------------
+{
+ "_id": 20170094,
+ "schema_version": 2,
+ "report": {
+  "type": "SUPPLEMENTAL FINAL",
+  "received": "2017-03-10 00:00:00"
+ },
+ "accident_datetime": "2017-02-09 18:50:00",
+ "operator": {
+  "id": 31684,
+  "name": "PHILLIPS 66 PIPELINE LLC"
+ },
+ "facility": "RIVER PARISH PIPELINE SYSTEM",
+ "location": {
+  "on_off_shore": "ONSHORE",
+  "state": "LA",
+  "county": "ST CHARLES",
+  "city": "PARADIS",
+  "geo": {
+   "type": "Point",
+   "coordinates": [
+    -90.449469,
+    29.859893
+   ]
+  }
+ },
+ "commodity": {
+  "type": "HVL OR OTHER FLAMMABLE OR TOXIC FLUID WHICH IS A GAS AT AMBIENT CONDITIONS",
+  "subtype": "LPG (LIQUEFIED PETROLEUM GAS)  /  NGL (NATURAL GAS LIQUID)"
+ },
+ "system_part": "ONSHORE PIPELINE, INCLUDING VALVE SITES",
+ "item_involved": "AUXILIARY PIPING (E.G. DRAIN LINES)",
+ "release": {
+  "type": "OTHER",
+  "unintentional_bbls": 13465.0,
+  "intentional_bbls": 0.0,
+  "recovered_bbls": 0.0,
+  "ignited": true
+ },
+ "casualties": [
+  {
+   "group": "EMPLOYEE",
+   "fatalities": 1,
+   "injuries": 0
+  },
+  {
+   "group": "CONTRACTOR",
+   "fatalities": 0,
+   "injuries": 1
+  }
+ ],
+ "costs": {
+  "public_property_paid_by_operator": 0.0,
+  "commodity_lost": 390636.0,
+  "operator_property_damage": 1443222.0,
+  "emergency_response": 2669566.0,
+  "environmental_remediation": 0.0,
+  "other": 0.0
+ },
+ "total_cost_usd": 4503424.0,
+ "cause": {
+  "category": "INCORRECT OPERATION",
+  "detail": "VALVE LEFT OR PLACED IN WRONG POSITION, BUT NOT RESULTING IN A TANK, VESSEL, OR SUMP/SEPARATOR OVERFLOW OR FACILITY OVERPRESSURE",
+  "answers": {
+   "operation_type": "VALVE LEFT OR PLACED IN WRONG POSITION, BUT NOT RESULTING IN A TANK, VESSEL, OR SUMP/SEPARATOR OVERFLOW OR FACILITY OVERPRESSURE",
+   "related_failure_follow_ind": true,
+   "category_type": "ROUTINE MAINTENANCE",
+   "operator_qualification_ind": true,
+   "qualified_individuals": "YES, THEY WERE QUALIFIED FOR THE TASK(S)"
+  }
+ },
+ "environment": {
+  "wildlife_impact_ind": false,
+  "soil_contamination": false,
+  "long_term_assessment": false,
+  "remediation_ind": false,
+  "water_contam_ind": false,
+  "could_be_hca": true,
+  "commodity_reached_hca": true,
+  "other_pop_ind": true,
+  "other_pop_yes_no": true,
+  "usa_ecological_ind": true,
+  "usa_ecological_yes_no": true
+ }
+}
+
+==============================================================================
+N2. External corrosion accidents with no cathodic protection, by state
+Same question as Portfolio 2 Q7 (which needed 5 tables joined).
+------------------------------------------------------------------------------
+{"_id": "TX", "accidents": 7}
+{"_id": "CA", "accidents": 5}
+{"_id": "NJ", "accidents": 2}
+{"_id": "WY", "accidents": 2}
+{"_id": "AR", "accidents": 1}
+{"_id": "IL", "accidents": 1}
+{"_id": "MI", "accidents": 1}
+{"_id": "PA", "accidents": 1}
+
+==============================================================================
+N3. Accidents, barrels released and total cost by cause category
+------------------------------------------------------------------------------
+{"_id": "MATERIAL FAILURE OF PIPE OR WELD", "accidents": 406, "bbl_released": 329358.14, "total_cost_usd": 2223458394.0}
+{"_id": "CORROSION FAILURE", "accidents": 1328, "bbl_released": 200718.77, "total_cost_usd": 757212348.0}
+{"_id": "EQUIPMENT FAILURE", "accidents": 2759, "bbl_released": 239510.62, "total_cost_usd": 423649445.0}
+{"_id": "NATURAL FORCE DAMAGE", "accidents": 264, "bbl_released": 97630.61, "total_cost_usd": 350161081.0}
+{"_id": "INCORRECT OPERATION", "accidents": 834, "bbl_released": 104629.28, "total_cost_usd": 275470769.0}
+{"_id": "EXCAVATION DAMAGE", "accidents": 199, "bbl_released": 248804.49, "total_cost_usd": 260482126.0}
+{"_id": "OTHER OUTSIDE FORCE DAMAGE", "accidents": 128, "bbl_released": 115085.3, "total_cost_usd": 201802585.0}
+{"_id": "OTHER ACCIDENT CAUSE", "accidents": 134, "bbl_released": 53150.81, "total_cost_usd": 127062612.0}
+
+==============================================================================
+N4. Fatalities and injuries by person group
+Casualties are an array inside each accident; $unwind turns them into rows.
+------------------------------------------------------------------------------
+{"_id": "OTHER_WORKER", "accidents": 4, "fatalities": 6, "injuries": 7}
+{"_id": "PUBLIC", "accidents": 5, "fatalities": 6, "injuries": 5}
+{"_id": "CONTRACTOR", "accidents": 14, "fatalities": 3, "injuries": 32}
+{"_id": "EMPLOYEE", "accidents": 3, "fatalities": 1, "injuries": 2}
+
+==============================================================================
+N5. Vehicle-damage accidents: type of vehicle involved
+'vehicle_type' exists in only 11 of 6,052 documents. In the flat file it is a
+column that is empty in 6,041 rows; here it simply appears where it applies.
+------------------------------------------------------------------------------
+{"_id": "LARGE TRUCK", "accidents": 4}
+{"_id": "MOTORCYCLE/ATV", "accidents": 4}
+{"_id": "PASSENGER CAR", "accidents": 2}
+{"_id": "SMALL TRUCK", "accidents": 1}
+
+==============================================================================
+N6. How many different cause questions each category actually uses
+Each cause category has its own set of questions: the variable structure
+that makes a document model a good fit.
+------------------------------------------------------------------------------
+{"_id": "CORROSION FAILURE", "distinct_fields": 69}
+{"_id": "EQUIPMENT FAILURE", "distinct_fields": 59}
+{"_id": "MATERIAL FAILURE OF PIPE OR WELD", "distinct_fields": 42}
+{"_id": "EXCAVATION DAMAGE", "distinct_fields": 41}
+{"_id": "INCORRECT OPERATION", "distinct_fields": 26}
+{"_id": "OTHER OUTSIDE FORCE DAMAGE", "distinct_fields": 25}
+{"_id": "NATURAL FORCE DAMAGE", "distinct_fields": 18}
+{"_id": "OTHER ACCIDENT CAUSE", "distinct_fields": 5}
+
+==============================================================================
+N7. Five most recent accidents for operator 31684 (Phillips 66 Pipeline)
+------------------------------------------------------------------------------
+{"_id": 20260224, "report": {"type": "ORIGINAL"}, "accident_datetime": "2026-08-28 10:50:00", "release": {"unintentional_bbls": 1.8}}
+{"_id": 20260181, "report": {"type": "ORIGINAL"}, "accident_datetime": "2026-07-03 18:50:00", "release": {"unintentional_bbls": 15.0}}
+{"_id": 20260050, "report": {"type": "SUPPLEMENTAL FINAL"}, "accident_datetime": "2026-02-07 09:20:00", "release": {"unintentional_bbls": 83.7}}
+{"_id": 20260030, "report": {"type": "ORIGINAL FINAL"}, "accident_datetime": "2026-01-31 15:05:00", "release": {"unintentional_bbls": 3.0}}
+{"_id": 20250285, "report": {"type": "ORIGINAL FINAL"}, "accident_datetime": "2025-12-04 11:00:00", "release": {"unintentional_bbls": 0.24}}
+
+==============================================================================
+N8. Operators with more than one name (embedded name history)
+52 operators have a second entry in name_history. Shown: the first 5.
+------------------------------------------------------------------------------
+{"_id": 473, "name": "WESTERN MIDSTREAM PARTNERS, LP", "name_history": [{"name": "ANADARKO PETROLEUM CORP", "first_report": "2019-11-22", "last_report": "2019-11-22"}, {"name": "WESTERN MIDSTREAM PARTNERS, LP", "first_report": "2022-09-23", "last_report": "2026-08-18"}]}
+{"_id": 1541, "name": "HILCORP NORTH SLOPE, LLC", "name_history": [{"name": "BP PIPELINES (ALASKA), INC", "first_report": "2012-05-10", "last_report": "2014-09-25"}, {"name": "HILCORP NORTH SLOPE, LLC", "first_report": "2021-12-21", "last_report": "2021-12-21"}]}
+{"_id": 2162, "name": "DOW PIPELINE LLC - CAYUSE", "name_history": [{"name": "DOW PIPELINE CO - CAYUSE", "first_report": "2016-05-11", "last_report": "2016-05-11"}, {"name": "DOW PIPELINE LLC - CAYUSE", "first_report": "2024-11-01", "last_report": "2026-08-12"}]}
+{"_id": 3445, "name": "DIXIE PIPELINE COMPANY LLC", "name_history": [{"name": "DIXIE PIPELINE", "first_report": "2010-08-02", "last_report": "2012-01-12"}, {"name": "DIXIE PIPELINE COMPANY LLC", "first_report": "2012-04-10", "last_report": "2026-02-21"}]}
+{"_id": 4472, "name": "CYPRESS INTERSTATE PIPELINE LLC", "name_history": [{"name": "KINDER MORGAN ENERGY PARTNERS, L.P.", "first_report": "2010-09-23", "last_report": "2010-09-23"}, {"name": "CYPRESS INTERSTATE PIPELINE LLC", "first_report": "2013-03-27", "last_report": "2013-03-27"}]}
+
+==============================================================================
+N9. Narratives mentioning frozen equipment
+Same question as Portfolio 2 Q6 (PostgreSQL returned 36 rows).
+------------------------------------------------------------------------------
+36
+
+==============================================================================
+N10. Accidents within 25 km of Cushing, Oklahoma (pipeline hub)
+Uses the GeoJSON point stored in each document (needs MongoDB / Atlas).
+------------------------------------------------------------------------------
+178
+
+saved to results\query_results_atlas.txt

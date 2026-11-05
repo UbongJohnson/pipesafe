@@ -1,0 +1,7 @@
+Replica set name : atlas-is2tvd-shard-0
+Members          : ac-canzcmc-shard-00-00.hpu4bgy.mongodb.net:27017, ac-canzcmc-shard-00-01.hpu4bgy.mongodb.net:27017, ac-canzcmc-shard-00-02.hpu4bgy.mongodb.net:27017
+Current primary  : ac-canzcmc-shard-00-01.hpu4bgy.mongodb.net:27017
+Server version   : 8.0.37
+Accidents counted via a secondary-preferred read: 6052
+Median insert time with w=1 (primary only): 129.3 ms
+Median insert time with w='majority' (2 of 3 nodes): 131.6 ms

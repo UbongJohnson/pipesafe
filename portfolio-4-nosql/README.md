@@ -16,9 +16,10 @@ Every query answer was cross-checked against PostgreSQL and matches exactly.
 | `scripts/run_queries.py` | Runs the same 10 queries from Python and saves the output |
 | `scripts/test_with_mongomock.py` | Offline test of the queries with no server (mongomock) |
 | `data/sample_documents.json` | 4 example documents: valve error, excavation, onshore corrosion, offshore corrosion |
-| `results/query_results_ferretdb.txt` | Query output from FerretDB (MongoDB-compatible server) |
-| `results/query_results_mongomock.txt` | Query output from mongomock |
-| `screenshots/` | Evidence from MongoDB Atlas |
+| `results/query_results_atlas.txt` | **Final query output from MongoDB Atlas** (all 10 queries) |
+| `results/query_results_ferretdb.txt` | Earlier test output from FerretDB (MongoDB-compatible server) |
+| `results/query_results_mongomock.txt` | Earlier test output from mongomock |
+| `screenshots/` | Evidence from MongoDB Atlas: build, validation check, load, the 10 queries, replica set |
 
 The full document files (`data/accidents.jsonl`, 15 MB) are not committed. Rebuild them with `build_documents.py`.
 
@@ -45,9 +46,11 @@ The full document files (`data/accidents.jsonl`, 15 MB) are not committed. Rebui
 
 Never commit your connection string or password to GitHub.
 
-## Expected Results
+## Results on MongoDB Atlas
 
-| Query | Expected answer |
+All of these were confirmed on Atlas (`results/query_results_atlas.txt`) and match PostgreSQL where the same question was asked there.
+
+| Query | Answer |
 |---|---|
 | N2 Corrosion, no cathodic protection | TX 7, CA 5, NJ 2, WY 2, AR 1, IL 1, MI 1, PA 1 |
 | N3 By cause category | e.g. Material failure: 406 accidents, $2,223,458,394 |
