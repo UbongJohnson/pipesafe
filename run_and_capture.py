@@ -170,7 +170,8 @@ class Runner:
                 text = text.replace(form, "********")
         if self.args.mongo:
             text = text.replace(self.args.mongo, "mongodb+srv://********")
-        return text.replace(sys.executable, "python").replace(self.psql_path(), "psql")
+        text = text.replace(sys.executable, "python").replace(self.psql_path(), "psql")
+        return text.replace(ROOT + os.sep, "")       # show paths relative to the repository folder
 
     def step(self, folder, name, title, cmd, cwd=None, save_as=None, critical=False, env=None, stdin=None):
         """Run one command, save its output as text + PNG (and optionally into results/)."""
@@ -333,6 +334,7 @@ def main():
     p.add_argument("--mongo", default="")
     p.add_argument("--pg-bin", default="")
     a = p.parse_args()
+    a.data = os.path.abspath(a.data)      # steps run inside each portfolio folder, so a relative path would break
     if not os.path.exists(a.data):
         sys.exit(f"Data file not found: {a.data}")
     r = Runner(a)
