@@ -15,13 +15,13 @@ Every figure comes from `scripts/benchmark.py`. The full plans for every query a
 | Measurement | Each query run twice to warm the cache, then `EXPLAIN (ANALYZE, BUFFERS)` 7 times; the **median** execution time is reported |
 | Correctness check | Every optimised query was confirmed to return **exactly the same rows** as the original, on both datasets |
 
-**Why a scaled copy?** The real database is small: the whole `accident` table is 6.6 MB and fits in memory. At that size PostgreSQL can read every row in about a millisecond, so index benefits are real but tiny. The scaled copy shows how the same queries behave at production size.
+**Why a scaled copy?** The real database is small: the whole `accident` table is 15 MB including all its indexes and fits in memory. At that size PostgreSQL can read every row in about a millisecond, so index benefits are real but tiny. The scaled copy shows how the same queries behave at production size.
 
 Copying rows keeps realistic value distributions (41% of accidents are still in Texas), but it is not real data. It is used only for performance testing.
 
 Absolute timings will differ on other machines. The ratios between "before" and "after" are the meaningful result.
 
-**Why the scaled timings are high.** The scaled `accident` table (635 MB) is about five times larger than PostgreSQL's 128 MB buffer cache. A full scan therefore reads most pages from disk: the Q4 scan, for example, found 5,714 pages in memory and read 75,640 from disk. This makes every full scan slow and somewhat variable, and it makes indexes more valuable, because each page an index avoids is usually a disk read avoided.
+**Why the scaled timings are high.** The scaled `accident` table's data (about 636 MB) is about five times larger than PostgreSQL's 128 MB buffer cache. A full scan therefore reads most pages from disk: the Q4 scan, for example, found 5,714 pages in memory and read 75,640 from disk. This makes every full scan slow and somewhat variable, and it makes indexes more valuable, because each page an index avoids is usually a disk read avoided.
 
 ## 2. What Was Optimised
 
@@ -141,10 +141,11 @@ Every optimisation trades something for read speed.
 
 | Object | Size |
 |---|---|
-| `accident` table | 635 MB |
-| Trigram index on narrative | **307 MB** (almost half the table) |
+| `accident` table data (81,354 pages of 8 KB, as read by the Q4 full scan) | about 636 MB |
+| `accident` table including all its indexes | 1,034 MB |
+| Trigram index on narrative | **322 MB** (about half the size of the table data) |
 | Materialised view and its two indexes | 71 MB |
-| Each B-tree index | about 4 MB |
+| Each B-tree index | about 4 MB (4.0–4.4 MB) |
 
 The B-tree indexes are unusually small because each value appears 100 times in the scaled copy, and PostgreSQL 13+ stores repeated index values only once (deduplication). With 605,200 genuinely different accidents they would be larger.
 
