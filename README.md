@@ -13,20 +13,36 @@ See [`portfolio-1-database-design/case-study.md`](portfolio-1-database-design/ca
 
 ## Portfolio Activities
 
-| # | Activity | Folder | Status |
+| # | Activity | Folder | What it shows |
 |---|---|---|---|
-| 1 | Database Design and Modelling | [`portfolio-1-database-design`](portfolio-1-database-design) | In progress |
-| 2 | Query Processing and Optimisation | `portfolio-2-query-optimisation` | Not started |
-| 3 | Transactions and Concurrency | `portfolio-3-transactions-concurrency` | Not started |
-| 4 | NoSQL and Advanced Data Models | `portfolio-4-nosql` | Not started |
-| 5 | Distributed and Cloud Database | `portfolio-5-distributed-cloud` | Not started |
+| 1 | Database Design and Modelling | [`portfolio-1-database-design`](portfolio-1-database-design) | Flat 648-column file normalised to a 20-table 3NF schema; ER diagram; constraints; loaded and verified |
+| 2 | Query Processing and Optimisation | [`portfolio-2-query-optimisation`](portfolio-2-query-optimisation) | 8 queries measured before/after on real and 100× scaled data; indexes, rewrites, materialised view; costs of each |
+| 3 | Transactions and Concurrency | [`portfolio-3-transactions-concurrency`](portfolio-3-transactions-concurrency) | Commit, rollback, savepoint; isolation levels; lost update and deadlock with working fixes |
+| 4 | NoSQL and Advanced Data Models | [`portfolio-4-nosql`](portfolio-4-nosql) | MongoDB document model holding all 242 cause-specific questions; 10 queries cross-checked against PostgreSQL |
+| 5 | Distributed and Cloud Database | [`portfolio-5-distributed-cloud`](portfolio-5-distributed-cloud) | 4-server cluster: streaming replication, sync vs async, failover, region sharding; CAP trade-offs measured |
+
+Each folder has a README explaining what was done, how to run it and what to expect, plus a write-up with the results.
+
+## Producing the Evidence
+
+`run_and_capture.py` runs every portfolio's steps on your own computer. It saves a screenshot (PNG) and a text copy of each step's output into that portfolio's `screenshots/` folder, stamped with the computer name and time.
+
+```bash
+pip install psycopg2-binary pymongo pandas numpy pillow
+
+# Windows: Portfolios 1-4 (Portfolio 1 rebuilds the pipesafe database)
+python run_and_capture.py --portfolios 1,2,3,4 --data PATH\TO\accident_hazardous_liquid_jan2010_present.txt --password YOUR_POSTGRES_PASSWORD --mongo "mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/"
+
+# WSL / Linux: Portfolio 5
+python3 run_and_capture.py --portfolios 5 --data /mnt/c/PATH/TO/accident_hazardous_liquid_jan2010_present.txt --pg-bin /usr/lib/postgresql/16/bin
+```
 
 ## Tools
 
-- PostgreSQL 16 (relational database)
-- Python 3 with pandas (data profiling and loading)
-- dbdiagram.io (ER diagram)
-- MongoDB (Portfolio 4, planned)
+- **PostgreSQL 16:** relational database, replication, `postgres_fdw` sharding
+- **Python 3:** pandas (data preparation), psycopg2 (PostgreSQL), pymongo (MongoDB)
+- **MongoDB Atlas:** document database and cloud replica set (Portfolios 4 and 5)
+- **dbdiagram.io:** ER diagram
 
 ## Data Source
 
