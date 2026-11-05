@@ -12,7 +12,23 @@ import numpy as np
 import pandas as pd
 
 path = sys.argv[1]
-df = pd.read_csv(path, sep="\t", dtype=str, encoding="utf-8", low_memory=False)
+def read_phmsa(file):
+    """Read the PHMSA file whether it is saved as UTF-8 or as Windows-1252
+    (the older Windows text format; also what Excel uses when re-saving)."""
+    for enc in ("utf-8-sig", "cp1252"):
+        try:
+            data = pd.read_csv(file, sep="\t", dtype=str, encoding=enc, low_memory=False)
+            break
+        except UnicodeDecodeError:
+            continue
+    data.columns = data.columns.str.strip()
+    if "REPORT_NUMBER" not in data.columns:
+        raise SystemExit("This does not look like the PHMSA tab-delimited file: no REPORT_NUMBER column. "
+                         "Use the original .txt file from the PHMSA ZIP, not a version saved by Excel as CSV.")
+    return data
+
+
+df = read_phmsa(path)
 df = df.replace(r"^\s*$", np.nan, regex=True)          # blank strings -> NULL
 num = lambda c: pd.to_numeric(df[c], errors="coerce")
 
