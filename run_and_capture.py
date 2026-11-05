@@ -22,6 +22,8 @@ Options:
     --host / --port / --user / --password / --dbname   PostgreSQL connection (Portfolios 1-3)
     --mongo URI          MongoDB Atlas connection string (Portfolio 4; skipped if missing)
     --pg-bin FOLDER      PostgreSQL programs folder (Portfolio 5)
+    --cluster-dir FOLDER Portfolio 5 cluster folder; must be on a Linux file system
+                         (default: ~/pipesafe-cluster when the repo is on a Windows drive)
 
 Output: <portfolio>/screenshots/NN_name.png (+ .txt), and fresh results/ files.
 Portfolio 1 creates the pipesafe database if it does not exist, then REBUILDS
@@ -280,9 +282,19 @@ def portfolio_5(r, a):
         return
     if not a.pg_bin:
         sys.exit("Portfolio 5 needs --pg-bin (e.g. /usr/lib/postgresql/18/bin)")
-    cluster = os.path.join(P5, "cluster")
+    # PostgreSQL needs Linux folder permissions (0700) on its data folders. A Windows drive
+    # mounted in WSL (/mnt/c/...) cannot provide them, so the cluster then lives in the Linux home.
+    if a.cluster_dir:
+        cluster = os.path.abspath(os.path.expanduser(a.cluster_dir))
+    elif P5.startswith("/mnt/"):
+        cluster = os.path.expanduser("~/pipesafe-cluster")
+    else:
+        cluster = os.path.join(P5, "cluster")
     if os.path.exists(cluster):
-        sys.exit(f"{cluster} already exists. Stop it (scripts/stop_cluster.sh ./cluster) and delete it first.")
+        sys.exit(f"{cluster} already exists. Stop it first:\n"
+                 f"  bash {os.path.join(P5, 'scripts', 'stop_cluster.sh')} {cluster}\n"
+                 f"then delete it:  rm -rf {cluster}")
+    print(f"[portfolio-5-distributed-cloud] cluster folder: {cluster}")
     sock = "/tmp"
     env5 = dict(r.env, PG_BIN=a.pg_bin, SKIP_PAUSE="1", PGPASSWORD="")
 
@@ -316,6 +328,14 @@ def portfolio_5(r, a):
     r.step(P5, "sharding_queries", "Portfolio 5 - routing, pruning, scatter-gather, pushdown, skew",
            ps(5601, "pipesafe", "-e", "-f", "sql/03_sharding_queries.sql"), env=env5,
            save_as="results/03_sharding_queries.log")
+    shard_sql = ("SELECT region, COUNT(*) AS accidents FROM accident_shard "
+                 "GROUP BY region ORDER BY accidents DESC;")
+    r.step(P5, "shard_nodes", "Portfolio 5 - each shard queried directly (bypassing the coordinator)",
+           ["bash", "-c",
+            "echo 'Direct query on each shard server (bypassing the coordinator)'; "
+            + "; ".join(f"echo '--- port {port}'; {' '.join(ps(port, 'pipesafe_shard'))} -c \"{shard_sql}\""
+                        for port in (5603, 5604))],
+           env=env5, save_as="results/shard_nodes.log")
     r.step(P5, "replication_demo", "Portfolio 5 - replication, sync vs async, standby failure, failover",
            [PY, "scripts/replication_demo.py", cluster, a.pg_bin, sock], env=env5)
     r.step(P5, "stop_cluster", "Portfolio 5 - stop the cluster",
@@ -333,6 +353,8 @@ def main():
     p.add_argument("--dbname", default="pipesafe")
     p.add_argument("--mongo", default="")
     p.add_argument("--pg-bin", default="")
+    p.add_argument("--cluster-dir", default="",
+                   help="Portfolio 5 cluster folder (default: ~/pipesafe-cluster when the repo is on /mnt/...)")
     a = p.parse_args()
     a.data = os.path.abspath(a.data)      # steps run inside each portfolio folder, so a relative path would break
     if not os.path.exists(a.data):
