@@ -1,0 +1,50 @@
+-- =====================================================================
+-- 01_commit.sql : logging a new accident as ONE transaction
+-- A new report touches four tables. Either all rows are saved, or none.
+-- Run after 00_setup_test_data.sql.
+-- =====================================================================
+SET search_path TO pipesafe;
+\echo '=== Before: test report 99990010 exists? ==='
+SELECT COUNT(*) AS rows_for_99990010 FROM accident WHERE report_number = 99990010;
+
+BEGIN;
+
+INSERT INTO accident (report_number, report_type, report_received_date, operator_id,
+    on_off_shore, county_id, latitude, longitude, accident_datetime, pipe_facility_type,
+    system_part_id, item_involved_id, commodity_subtype_id, release_type,
+    unintentional_release_bbls, recovered_bbls, ignited, cause_detail_id, narrative)
+VALUES (99990010, 'ORIGINAL', DATE '2026-10-25', 31684, 'ONSHORE',
+    (SELECT county_id FROM county WHERE state_code = 'LA' AND county_name = 'ST CHARLES'),
+    29.96, -90.41, TIMESTAMP '2026-10-24 14:10', 'INTRASTATE',
+    (SELECT system_part_id FROM system_part WHERE part_name = 'ONSHORE PIPELINE, INCLUDING VALVE SITES'),
+    (SELECT item_involved_id FROM item_involved WHERE item_name = 'PIPE'),
+    (SELECT s.commodity_subtype_id FROM commodity_subtype s JOIN commodity_type t USING (commodity_type_id)
+      WHERE t.type_name = 'CRUDE OIL' AND s.subtype_name = 'NOT SPECIFIED'),
+    'LEAK', 120, 95, FALSE,
+    (SELECT cause_detail_id FROM cause_detail WHERE detail_name = 'EXTERNAL CORROSION'),
+    'TEST REPORT - Portfolio 3 commit demo');
+
+INSERT INTO accident_cost (report_number, cost_type_id, amount_usd)
+SELECT 99990010, cost_type_id, v.amount
+FROM cost_type JOIN (VALUES ('EST_COST_GAS_RELEASED', 1800),
+                            ('EST_COST_EMERGENCY', 42000),
+                            ('EST_COST_ENVIRONMENTAL', 65000)) AS v(code, amount)
+               ON v.code = cost_type.cost_code;
+
+INSERT INTO casualty (report_number, person_group, fatalities, injuries)
+VALUES (99990010, 'CONTRACTOR', 0, 1);
+
+INSERT INTO corrosion_detail (report_number, visual_exam_result, under_cathodic_protection,
+                              externally_coated, corrosion_inhibitors_used)
+VALUES (99990010, 'LOCALIZED PITTING', TRUE, TRUE, FALSE);
+
+COMMIT;
+
+\echo '=== After COMMIT: all four tables have the new report ==='
+SELECT 'accident' AS table_name, COUNT(*) FROM accident WHERE report_number = 99990010
+UNION ALL SELECT 'accident_cost',    COUNT(*) FROM accident_cost    WHERE report_number = 99990010
+UNION ALL SELECT 'casualty',         COUNT(*) FROM casualty         WHERE report_number = 99990010
+UNION ALL SELECT 'corrosion_detail', COUNT(*) FROM corrosion_detail WHERE report_number = 99990010;
+
+SELECT report_number, cause_category, total_cost_usd, total_injuries
+FROM v_accident_summary WHERE report_number = 99990010;

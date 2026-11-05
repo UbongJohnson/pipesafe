@@ -1,0 +1,54 @@
+SET search_path TO pipesafe;
+SET
+=== Example A: negative cost breaks CHECK (amount_usd >= 0) ===
+BEGIN;
+BEGIN
+INSERT INTO accident (report_number, report_type, report_received_date, operator_id,
+    on_off_shore, latitude, longitude, accident_datetime, pipe_facility_type,
+    system_part_id, item_involved_id, commodity_subtype_id, release_type,
+    unintentional_release_bbls, recovered_bbls, cause_detail_id, narrative)
+VALUES (99990011, 'ORIGINAL', DATE '2026-10-26', 31684, 'ONSHORE', 29.97, -90.42,
+    TIMESTAMP '2026-10-25 08:00', 'INTRASTATE', 1, 1,
+    (SELECT s.commodity_subtype_id FROM commodity_subtype s JOIN commodity_type t USING (commodity_type_id)
+      WHERE t.type_name = 'CRUDE OIL' AND s.subtype_name = 'NOT SPECIFIED'),
+    'LEAK', 40, 10, 1, 'TEST REPORT - Portfolio 3 rollback demo');
+INSERT 0 1
+--- accident row inserted inside the transaction:
+SELECT report_number, unintentional_release_bbls FROM accident WHERE report_number = 99990011;
+ report_number | unintentional_release_bbls 
+---------------+----------------------------
+      99990011 |                      40.00
+(1 row)
+
+INSERT INTO accident_cost (report_number, cost_type_id, amount_usd)
+VALUES (99990011, 4, -5000);
+psql:sql/02_rollback_on_error.sql:25: ERROR:  new row for relation "accident_cost" violates check constraint "accident_cost_amount_usd_check"
+DETAIL:  Failing row contains (99990011, 4, -5000.00).
+--- any further statement is refused while the transaction is aborted:
+INSERT INTO casualty (report_number, person_group, fatalities, injuries)
+VALUES (99990011, 'EMPLOYEE', 0, 1);
+psql:sql/02_rollback_on_error.sql:29: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+COMMIT;
+ROLLBACK
+--- after the transaction: the accident row is gone too
+SELECT COUNT(*) AS rows_for_99990011 FROM accident WHERE report_number = 99990011;
+ rows_for_99990011 
+-------------------
+                 0
+(1 row)
+
+=== Example B: business rule - cannot recover more oil than was released ===
+BEGIN;
+BEGIN
+UPDATE accident SET recovered_bbls = 650 WHERE report_number = 99990001;
+psql:sql/02_rollback_on_error.sql:37: ERROR:  new row for relation "accident" violates check constraint "chk_recovered_not_more_than_released"
+DETAIL:  Failing row contains (99990001, ORIGINAL, 2026-10-20, 31684, null, null, ONSHORE, 316, null, 29.950000, -90.400000, 2026-10-18 09:30:00, null, INTRASTATE, 5, 8, null, null, 5, LEAK, 500.00, null, 650.00, f, null, null, null, 1, TEST REPORT - Portfolio 3 transaction demo).
+ROLLBACK;
+ROLLBACK
+SELECT report_number, unintentional_release_bbls, recovered_bbls
+FROM accident WHERE report_number = 99990001;
+ report_number | unintentional_release_bbls | recovered_bbls 
+---------------+----------------------------+----------------
+      99990001 |                     500.00 |         300.00
+(1 row)
+

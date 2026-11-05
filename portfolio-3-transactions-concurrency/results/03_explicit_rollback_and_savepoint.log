@@ -1,0 +1,61 @@
+SET search_path TO pipesafe;
+SET
+=== A. Explicit ROLLBACK ===
+--- open reports before:
+SELECT report_type, COUNT(*) FROM accident
+WHERE report_type IN ('ORIGINAL', 'SUPPLEMENTAL') GROUP BY report_type ORDER BY 1;
+ report_type  | count 
+--------------+-------
+ ORIGINAL     |   124
+ SUPPLEMENTAL |   120
+(2 rows)
+
+BEGIN;
+BEGIN
+UPDATE accident SET report_type = 'ORIGINAL FINAL' WHERE report_type = 'ORIGINAL';
+UPDATE 124
+--- inside the transaction, open ORIGINAL reports left:
+SELECT COUNT(*) AS open_original FROM accident WHERE report_type = 'ORIGINAL';
+ open_original 
+---------------
+             0
+(1 row)
+
+ROLLBACK;
+ROLLBACK
+--- after ROLLBACK, nothing has changed:
+SELECT report_type, COUNT(*) FROM accident
+WHERE report_type IN ('ORIGINAL', 'SUPPLEMENTAL') GROUP BY report_type ORDER BY 1;
+ report_type  | count 
+--------------+-------
+ ORIGINAL     |   124
+ SUPPLEMENTAL |   120
+(2 rows)
+
+=== B. SAVEPOINT: keep the good work, undo only the failed step ===
+BEGIN;
+BEGIN
+UPDATE accident SET recovered_bbls = 320 WHERE report_number = 99990002;
+UPDATE 1
+SAVEPOINT before_casualty;
+SAVEPOINT
+INSERT INTO casualty (report_number, person_group, fatalities, injuries)
+VALUES (99990002, 'VISITOR', 0, 1);
+psql:sql/03_explicit_rollback_and_savepoint.sql:31: ERROR:  new row for relation "casualty" violates check constraint "casualty_person_group_check"
+DETAIL:  Failing row contains (99990002, VISITOR, 0, 1).
+ROLLBACK TO SAVEPOINT before_casualty;
+ROLLBACK
+INSERT INTO casualty (report_number, person_group, fatalities, injuries)
+VALUES (99990002, 'PUBLIC', 0, 1);
+INSERT 0 1
+COMMIT;
+COMMIT
+--- result: the update before the savepoint and the corrected insert were both kept
+SELECT a.report_number, a.recovered_bbls, c.person_group, c.injuries
+FROM accident a LEFT JOIN casualty c USING (report_number)
+WHERE a.report_number = 99990002;
+ report_number | recovered_bbls | person_group | injuries 
+---------------+----------------+--------------+----------
+      99990002 |         320.00 | PUBLIC       |        1
+(1 row)
+
