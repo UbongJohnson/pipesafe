@@ -6,6 +6,7 @@ Usage:
 Then run sql/02_load_data.sql from the folder that contains load/.
 """
 import sys, os
+import warnings
 import numpy as np
 import pandas as pd
 
@@ -28,9 +29,13 @@ def read_phmsa(file):
 
 
 df = read_phmsa(src)
-df = df.replace(r"^\s*$", np.nan, regex=True)
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", FutureWarning)   # pandas 2.2 downcasting notice
+    # blank strings -> NULL; astype(object) keeps all-blank columns as text (pandas makes them float)
+    df = df.replace(r"^\s*$", np.nan, regex=True).astype(object)
 for c in df.columns:                                   # trim stray spaces
     df[c] = df[c].str.strip()
+df = df.copy()                                         # one compact block: no 'fragmented' warnings
 
 num = lambda s: pd.to_numeric(s, errors="coerce")
 yesno = lambda s: s.map({"YES": True, "NO": False})

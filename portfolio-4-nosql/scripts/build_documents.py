@@ -15,6 +15,7 @@ Usage:
 Writes data/accidents.jsonl and data/operators.jsonl
 """
 import json, os, re, sys
+import warnings
 import numpy as np
 import pandas as pd
 
@@ -37,9 +38,13 @@ def read_phmsa(file):
 
 
 df = read_phmsa(src)
-df = df.replace(r"^\s*$", np.nan, regex=True)
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", FutureWarning)   # pandas 2.2 downcasting notice
+    # blank strings -> NULL; astype(object) keeps all-blank columns as text (pandas makes them float)
+    df = df.replace(r"^\s*$", np.nan, regex=True).astype(object)
 for c in df.columns:
     df[c] = df[c].str.strip()
+df = df.copy()                                         # one compact block: no 'fragmented' warnings
 cols = list(df.columns)
 
 # Column blocks (positions in the PHMSA file, see dataset-analysis.md section 3)

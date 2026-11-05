@@ -8,6 +8,7 @@ Prints a profile of the raw file (size, years, missing values, operators,
 categories, data-quality checks) and writes data/sample.csv.
 """
 import sys
+import warnings
 import numpy as np
 import pandas as pd
 
@@ -29,7 +30,10 @@ def read_phmsa(file):
 
 
 df = read_phmsa(path)
-df = df.replace(r"^\s*$", np.nan, regex=True)          # blank strings -> NULL
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", FutureWarning)   # pandas 2.2 downcasting notice
+    # blank strings -> NULL; astype(object) keeps all-blank columns as text (pandas makes them float)
+    df = df.replace(r"^\s*$", np.nan, regex=True).astype(object)
 num = lambda c: pd.to_numeric(df[c], errors="coerce")
 
 print("== 1. Size ==")
