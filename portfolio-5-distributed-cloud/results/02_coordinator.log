@@ -1,0 +1,61 @@
+CREATE EXTENSION IF NOT EXISTS postgres_fdw;
+psql:sql/02_coordinator.sql:9: NOTICE:  extension "postgres_fdw" already exists, skipping
+CREATE EXTENSION
+DROP SCHEMA IF EXISTS dist CASCADE;
+psql:sql/02_coordinator.sql:10: NOTICE:  drop cascades to table dist.accident_by_region
+DROP SCHEMA
+CREATE SCHEMA dist;
+CREATE SCHEMA
+DROP SERVER IF EXISTS shard_a CASCADE;
+psql:sql/02_coordinator.sql:13: NOTICE:  drop cascades to user mapping for postgres on server shard_a
+DROP SERVER
+DROP SERVER IF EXISTS shard_b CASCADE;
+psql:sql/02_coordinator.sql:14: NOTICE:  drop cascades to user mapping for postgres on server shard_b
+DROP SERVER
+CREATE SERVER shard_a FOREIGN DATA WRAPPER postgres_fdw
+    OPTIONS (host '/tmp', port '5603', dbname 'pipesafe_shard', async_capable 'true');
+CREATE SERVER
+CREATE SERVER shard_b FOREIGN DATA WRAPPER postgres_fdw
+    OPTIONS (host '/tmp', port '5604', dbname 'pipesafe_shard', async_capable 'true');
+CREATE SERVER
+CREATE USER MAPPING FOR CURRENT_USER SERVER shard_a OPTIONS (user 'postgres');
+CREATE USER MAPPING
+CREATE USER MAPPING FOR CURRENT_USER SERVER shard_b OPTIONS (user 'postgres');
+CREATE USER MAPPING
+CREATE TABLE dist.accident_by_region (
+    report_number               BIGINT        NOT NULL,
+    region                      VARCHAR(20)   NOT NULL,
+    state_code                  CHAR(2),
+    accident_datetime           TIMESTAMP     NOT NULL,
+    operator_id                 INTEGER       NOT NULL,
+    cause_category              VARCHAR(60)   NOT NULL,
+    unintentional_release_bbls  NUMERIC(12,2) NOT NULL,
+    recovered_bbls              NUMERIC(12,2) NOT NULL,
+    total_cost_usd              NUMERIC(14,2) NOT NULL
+) PARTITION BY LIST (region);
+CREATE TABLE
+CREATE FOREIGN TABLE dist.accident_south
+    PARTITION OF dist.accident_by_region FOR VALUES IN ('SOUTH')
+    SERVER shard_a OPTIONS (schema_name 'public', table_name 'accident_shard');
+CREATE FOREIGN TABLE
+CREATE FOREIGN TABLE dist.accident_other
+    PARTITION OF dist.accident_by_region DEFAULT
+    SERVER shard_b OPTIONS (schema_name 'public', table_name 'accident_shard');
+CREATE FOREIGN TABLE
+INSERT INTO dist.accident_by_region
+SELECT a.report_number,
+       COALESCE(s.region, s2.region, 'UNKNOWN'),
+       COALESCE(s.state_code, s2.state_code),
+       a.accident_datetime,
+       a.operator_id,
+       v.cause_category,
+       a.unintentional_release_bbls,
+       a.recovered_bbls,
+       v.total_cost_usd
+FROM pipesafe.accident a
+JOIN pipesafe.v_accident_summary v ON v.report_number = a.report_number
+LEFT JOIN pipesafe.county c             ON c.county_id      = a.county_id
+LEFT JOIN pipesafe.state s              ON s.state_code     = c.state_code
+LEFT JOIN pipesafe.offshore_location o  ON o.report_number  = a.report_number
+LEFT JOIN pipesafe.state s2             ON s2.state_code    = o.adjacent_state_code;
+INSERT 0 6052

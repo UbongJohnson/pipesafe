@@ -1,0 +1,58 @@
+PipeSafe replication demonstrations - 2026-11-01 04:58:04
+PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+
+==============================================================================
+R1: Replication status
+==============================================================================
+primary  port 5601: in recovery (read-only replica) = False, accidents = 6052, total cost = 4619299360.00
+standby  port 5602: in recovery (read-only replica) = True, accidents = 6052, total cost = 4619299360.00
+primary sees replica: application=walreceiver state=streaming sync_state=async
+
+==============================================================================
+R2: Asynchronous replication: time until a write is visible on the standby
+20 accident reports are inserted on the primary. After each COMMIT the standby is
+read immediately, then polled until the new report appears.
+==============================================================================
+Immediate read on standby missed the new row: 20 of 20 times (stale reads)
+Time until visible on standby: median 0.91 ms, max 1.17 ms
+
+==============================================================================
+R3: The standby is read-only
+==============================================================================
+INSERT on standby -> ERROR:  cannot execute INSERT in a read-only transaction
+
+==============================================================================
+R4: Synchronous replication (synchronous_commit = remote_apply)
+COMMIT on the primary now waits until the standby has APPLIED the change.
+==============================================================================
+sync_state now: sync
+Median single-insert commit time: asynchronous 0.43 ms, synchronous (remote_apply) 0.81 ms  (1.9x slower)
+Immediate read on standby missed the new row: 0 of 20 times
+
+==============================================================================
+R5: Availability vs consistency: the standby goes down
+With synchronous replication, a COMMIT cannot finish without the standby.
+==============================================================================
+stopping standby: server stopped
+after 5 s the INSERT is still waiting: True
+cancelled after 5.0 s
+server said: WARNING:  canceling wait for synchronous replication due to user request
+DETAIL:  The transaction has already committed locally, but might not have been replicated to the standby.
+row exists on primary: True (committed locally, NOT confirmed on any replica)
+
+Choosing availability instead: switch back to asynchronous replication
+INSERT with the standby still down: committed in 3.0 ms
+restarting standby: server started
+standby caught up with the writes it missed in 1 ms (both test rows present: True)
+
+==============================================================================
+R6: Failover: the primary crashes and the standby is promoted
+==============================================================================
+last report written before the crash: 99996600 (replicated). Accidents on standby: 6195
+crash primary (immediate stop): server stopped
+connect to primary -> connection to server on socket "/tmp/.s.PGSQL.5601" failed: No such file or directory
+write to standby before promotion -> ERROR:  cannot execute INSERT in a read-only transaction
+promote standby: SELECT pg_promote() -> True
+write on the NEW primary (port 5602) succeeded 0.11 s after the crash
+new primary: in recovery = False, accidents = 6196, last pre-crash report present = True
+test rows removed; accidents now 6052
