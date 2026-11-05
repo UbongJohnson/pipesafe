@@ -7,4 +7,3 @@ SELECT COUNT(*) AS accidents_after_cleanup FROM accident;
 -------------------------
                     6052
 (1 row)
-

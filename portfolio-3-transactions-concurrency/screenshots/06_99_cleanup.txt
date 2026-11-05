@@ -1,0 +1,9 @@
+SET search_path TO pipesafe;
+SET
+DELETE FROM accident WHERE report_number BETWEEN 99990000 AND 99999999;
+DELETE 2
+SELECT COUNT(*) AS accidents_after_cleanup FROM accident;
+ accidents_after_cleanup 
+-------------------------
+                    6052
+(1 row)

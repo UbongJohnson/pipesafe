@@ -26,4 +26,3 @@ FROM accident WHERE report_number BETWEEN 99990000 AND 99999999 ORDER BY 1;
       99990001 | ORIGINAL    |                     500.00 |         300.00
       99990002 | ORIGINAL    |                     500.00 |         300.00
 (2 rows)
-

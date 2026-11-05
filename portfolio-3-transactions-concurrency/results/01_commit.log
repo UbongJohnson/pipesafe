@@ -59,4 +59,3 @@ FROM v_accident_summary WHERE report_number = 99990010;
 ---------------+-------------------+----------------+----------------
       99990010 | CORROSION FAILURE |      108800.00 |              1
 (1 row)
-

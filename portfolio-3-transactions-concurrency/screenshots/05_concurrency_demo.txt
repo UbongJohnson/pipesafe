@@ -1,0 +1,245 @@
+PipeSafe concurrency demonstrations - 2026-11-05 20:44:38
+PostgreSQL 18.0 on x86_64-windows, compiled by msvc-19.44.35217, 64-bit
+
+==============================================================================
+SCENARIO 1a: Non-repeatable read under READ COMMITTED
+A reads the same report twice. B changes it in between and commits.
+==============================================================================
+[  0.00s] A> BEGIN ISOLATION LEVEL READ COMMITTED
+           A  -> BEGIN
+[  0.00s] A> SELECT recovered_bbls FROM accident WHERE report_number = 99990001
+           A  -> 300.00
+[  0.02s] B> UPDATE accident SET recovered_bbls = 350 WHERE report_number = 99990001
+           B  -> UPDATE 1
+[  0.04s] A> SELECT recovered_bbls FROM accident WHERE report_number = 99990001
+           A  -> 350.00
+[  0.04s] A> COMMIT
+           A  -> COMMIT
+RESULT: A saw 300.00 then 350.00 -> DIFFERENT values in one transaction
+
+==============================================================================
+SCENARIO 1b: Non-repeatable read under REPEATABLE READ
+A reads the same report twice. B changes it in between and commits.
+==============================================================================
+[  0.00s] A> BEGIN ISOLATION LEVEL REPEATABLE READ
+           A  -> BEGIN
+[  0.00s] A> SELECT recovered_bbls FROM accident WHERE report_number = 99990001
+           A  -> 300.00
+[  0.00s] B> UPDATE accident SET recovered_bbls = 350 WHERE report_number = 99990001
+           B  -> UPDATE 1
+[  0.00s] A> SELECT recovered_bbls FROM accident WHERE report_number = 99990001
+           A  -> 300.00
+[  0.00s] A> COMMIT
+           A  -> COMMIT
+RESULT: A saw 300.00 then 300.00 -> SAME value both times (stable snapshot)
+
+==============================================================================
+SCENARIO 2a: Phantom read under READ COMMITTED
+A counts an operator's open reports twice. B files a new report in between.
+==============================================================================
+[  0.00s] A> BEGIN ISOLATION LEVEL READ COMMITTED
+           A  -> BEGIN
+[  0.00s] A> SELECT COUNT(*) FROM accident WHERE operator_id = 31684 AND report_type = 'ORIGINAL'
+           A  -> 4
+[  0.01s] B> INSERT INTO accident (report_number, report_type, report_received_date, operator_id, on_off_shore, latitude, longitude, accident_datetime, pipe_facility_type, system_part_id, item_involved_id, commodity_subtype_id, release_type, unintentional_release_bbls, recovered_bbls, cause_detail_id, narrative) SELECT 99990020, 'ORIGINAL', report_received_date, operator_id, on_off_shore, latitude, longitude, accident_datetime, pipe_facility_type, system_part_id, item_involved_id, commodity_subtype_id, release_type, 10, 0, cause_detail_id, 'TEST REPORT - phantom demo' FROM accident WHERE report_number = 99990001
+           B  -> INSERT 0 1
+[  0.04s] A> SELECT COUNT(*) FROM accident WHERE operator_id = 31684 AND report_type = 'ORIGINAL'
+           A  -> 5
+[  0.04s] A> COMMIT
+           A  -> COMMIT
+RESULT: A counted 4 then 5 -> a new 'phantom' row appeared
+
+==============================================================================
+SCENARIO 2b: Phantom read under REPEATABLE READ
+A counts an operator's open reports twice. B files a new report in between.
+==============================================================================
+[  0.00s] A> BEGIN ISOLATION LEVEL REPEATABLE READ
+           A  -> BEGIN
+[  0.00s] A> SELECT COUNT(*) FROM accident WHERE operator_id = 31684 AND report_type = 'ORIGINAL'
+           A  -> 4
+[  0.00s] B> INSERT INTO accident (report_number, report_type, report_received_date, operator_id, on_off_shore, latitude, longitude, accident_datetime, pipe_facility_type, system_part_id, item_involved_id, commodity_subtype_id, release_type, unintentional_release_bbls, recovered_bbls, cause_detail_id, narrative) SELECT 99990020, 'ORIGINAL', report_received_date, operator_id, on_off_shore, latitude, longitude, accident_datetime, pipe_facility_type, system_part_id, item_involved_id, commodity_subtype_id, release_type, 10, 0, cause_detail_id, 'TEST REPORT - phantom demo' FROM accident WHERE report_number = 99990001
+           B  -> INSERT 0 1
+[  0.01s] A> SELECT COUNT(*) FROM accident WHERE operator_id = 31684 AND report_type = 'ORIGINAL'
+           A  -> 4
+[  0.01s] A> COMMIT
+           A  -> COMMIT
+RESULT: A counted 4 then 4 -> no phantom (stable snapshot)
+
+==============================================================================
+SCENARIO 3: LOST UPDATE (the problem)
+Two investigators each read the recovered volume (300 bbl), add the oil THEY
+recovered (A: +50, B: +30) in their application, and write the total back.
+Correct final value: 300 + 50 + 30 = 380.
+==============================================================================
+[  0.00s] A> BEGIN
+           A  -> BEGIN
+[  0.00s] B> BEGIN
+           B  -> BEGIN
+[  0.00s] A> SELECT recovered_bbls FROM accident WHERE report_number = 99990001
+           A  -> 300.00
+[  0.00s] B> SELECT recovered_bbls FROM accident WHERE report_number = 99990001
+           B  -> 300.00
+[  0.00s] A> UPDATE accident SET recovered_bbls = 350.00 WHERE report_number = 99990001
+           A  -> UPDATE 1
+[  0.00s] A> COMMIT
+           A  -> COMMIT
+[  0.01s] B> UPDATE accident SET recovered_bbls = 330.00 WHERE report_number = 99990001
+           B  -> UPDATE 1
+[  0.01s] B> COMMIT
+           B  -> COMMIT
+RESULT: recovered_bbls for 99990001 = 330.00  (WRONG - A's 50 barrels were silently overwritten)
+
+==============================================================================
+SCENARIO 4: FIX 1: SELECT ... FOR UPDATE (pessimistic locking)
+Each session locks the row when it reads it. B must wait until A commits,
+then reads A's new value.
+==============================================================================
+[  0.00s] A> BEGIN
+           A  -> BEGIN
+[  0.00s] A> SELECT recovered_bbls FROM accident WHERE report_number = 99990001 FOR UPDATE
+           A  -> 300.00
+[  0.00s] B> BEGIN
+           B  -> BEGIN
+[  0.01s] B> SELECT recovered_bbls FROM accident WHERE report_number = 99990001 FOR UPDATE
+           (B is blocked, waiting for A's lock)
+[  2.01s] A> UPDATE accident SET recovered_bbls = 350.00 WHERE report_number = 99990001
+           A  -> UPDATE 1
+[  2.01s] A> COMMIT
+           B  -> 350.00
+[  2.01s] B> UPDATE accident SET recovered_bbls = 380.00 WHERE report_number = 99990001
+           A  -> COMMIT
+           B  -> UPDATE 1
+[  2.01s] B> COMMIT
+           B  -> COMMIT
+B waited 2.00 s for the lock
+RESULT: recovered_bbls for 99990001 = 380.00  (CORRECT - both updates kept)
+
+==============================================================================
+SCENARIO 5: FIX 2: REPEATABLE READ detects the conflict (optimistic approach)
+No locks are taken when reading. PostgreSQL refuses B's write because the
+row changed after B's snapshot. The application retries B's transaction.
+==============================================================================
+[  0.00s] A> BEGIN ISOLATION LEVEL REPEATABLE READ
+           A  -> BEGIN
+[  0.00s] B> BEGIN ISOLATION LEVEL REPEATABLE READ
+           B  -> BEGIN
+[  0.00s] A> SELECT recovered_bbls FROM accident WHERE report_number = 99990001
+           A  -> 300.00
+[  0.00s] B> SELECT recovered_bbls FROM accident WHERE report_number = 99990001
+           B  -> 300.00
+[  0.00s] A> UPDATE accident SET recovered_bbls = 350.00 WHERE report_number = 99990001
+           A  -> UPDATE 1
+[  0.00s] A> COMMIT
+           A  -> COMMIT
+[  0.00s] B> UPDATE accident SET recovered_bbls = 330.00 WHERE report_number = 99990001
+           B  -> ERROR:  could not serialize access due to concurrent update
+[  0.01s] B> ROLLBACK
+           B  -> ROLLBACK
+           (application catches the serialization error and retries B)
+[  0.01s] B> BEGIN ISOLATION LEVEL REPEATABLE READ
+           B  -> BEGIN
+[  0.01s] B> SELECT recovered_bbls FROM accident WHERE report_number = 99990001
+           B  -> 350.00
+[  0.01s] B> UPDATE accident SET recovered_bbls = 380.00 WHERE report_number = 99990001
+           B  -> UPDATE 1
+[  0.01s] B> COMMIT
+           B  -> COMMIT
+RESULT: recovered_bbls for 99990001 = 380.00  (CORRECT - conflict detected, retry applied)
+
+==============================================================================
+SCENARIO 6: FIX 3: one atomic UPDATE (no read-modify-write)
+The addition happens inside the database: SET recovered = recovered + n.
+B's UPDATE waits for A's row lock, then re-reads the latest committed value.
+==============================================================================
+[  0.00s] A> BEGIN
+           A  -> BEGIN
+[  0.00s] A> UPDATE accident SET recovered_bbls = recovered_bbls + 50 WHERE report_number = 99990001
+           A  -> UPDATE 1
+[  0.01s] B> BEGIN
+           B  -> BEGIN
+[  0.01s] B> UPDATE accident SET recovered_bbls = recovered_bbls + 30 WHERE report_number = 99990001
+           (B is blocked, waiting for A's row lock)
+[  1.51s] A> COMMIT
+           A  -> COMMIT
+           B  -> UPDATE 1
+[  1.51s] B> COMMIT
+           B  -> COMMIT
+RESULT: recovered_bbls for 99990001 = 380.00  (CORRECT - both increments applied)
+
+==============================================================================
+SCENARIO 7: Locking + CHECK constraint stop an impossible total
+500 bbl were released and 300 recovered. A records +150 and B records +100,
+which together would exceed what was released. With locking, B sees A's
+value and the CHECK (recovered <= released) rejects B's update.
+==============================================================================
+[  0.00s] A> BEGIN
+           A  -> BEGIN
+[  0.00s] A> SELECT recovered_bbls FROM accident WHERE report_number = 99990001 FOR UPDATE
+           A  -> 300.00
+[  0.00s] B> BEGIN
+           B  -> BEGIN
+[  0.00s] B> SELECT recovered_bbls FROM accident WHERE report_number = 99990001 FOR UPDATE
+[  1.50s] A> UPDATE accident SET recovered_bbls = 450.00 WHERE report_number = 99990001
+           A  -> UPDATE 1
+[  1.51s] A> COMMIT
+           A  -> COMMIT
+           B  -> 450.00
+[  1.51s] B> UPDATE accident SET recovered_bbls = 550.00 WHERE report_number = 99990001
+           B  -> ERROR:  new row for relation "accident" violates check constraint "chk_recovered_not_more_than_released"
+[  1.51s] B> ROLLBACK
+           B  -> ROLLBACK
+RESULT: recovered_bbls for 99990001 = 450.00  (consistent - B's impossible update was refused and must be checked by B)
+Without locking, B would have written 300 + 100 = 400, silently losing A's 150 bbl
+and passing the CHECK. The constraint is only reliable when updates are serialised.
+
+==============================================================================
+SCENARIO 8: DEADLOCK (the problem)
+A updates report 99990001 then 99990002. B updates the same two reports in the
+OPPOSITE order. Each ends up waiting for a row the other has locked.
+==============================================================================
+[  0.00s] A> BEGIN
+           A  -> BEGIN
+[  0.00s] B> BEGIN
+           B  -> BEGIN
+[  0.00s] A> UPDATE accident SET recovered_bbls = recovered_bbls + 1 WHERE report_number = 99990001
+           A  -> UPDATE 1
+[  0.00s] B> UPDATE accident SET recovered_bbls = recovered_bbls + 1 WHERE report_number = 99990002
+           B  -> UPDATE 1
+[  0.00s] A> UPDATE accident SET recovered_bbls = recovered_bbls + 1 WHERE report_number = 99990002
+[  0.30s] B> UPDATE accident SET recovered_bbls = recovered_bbls + 1 WHERE report_number = 99990001
+           A  -> ERROR:  deadlock detected
+           B  -> UPDATE 1
+[  1.02s] A> ROLLBACK
+           A  -> ROLLBACK
+[  1.02s] B> COMMIT
+           B  -> COMMIT
+RESULT: PostgreSQL detected the deadlock after deadlock_timeout (1 s) and cancelled session A so the other could finish.
+
+==============================================================================
+SCENARIO 9: FIX: lock rows in a consistent order
+Both sessions lock BOTH reports first, always in report_number order.
+B simply waits for A instead of deadlocking.
+==============================================================================
+[  0.00s] A> BEGIN
+           A  -> BEGIN
+[  0.00s] A> SELECT report_number FROM accident WHERE report_number IN (99990001, 99990002) ORDER BY report_number FOR UPDATE
+           A  -> [(99990001,), (99990002,)]
+[  0.00s] B> BEGIN
+           B  -> BEGIN
+[  0.01s] B> SELECT report_number FROM accident WHERE report_number IN (99990001, 99990002) ORDER BY report_number FOR UPDATE
+[  1.51s] A> UPDATE accident SET recovered_bbls = recovered_bbls + 1 WHERE report_number = 99990001
+           A  -> UPDATE 1
+[  1.52s] A> UPDATE accident SET recovered_bbls = recovered_bbls + 1 WHERE report_number = 99990002
+           A  -> UPDATE 1
+[  1.52s] A> COMMIT
+           A  -> COMMIT
+           B  -> [(99990001,), (99990002,)]
+[  1.52s] B> UPDATE accident SET recovered_bbls = recovered_bbls + 1 WHERE report_number = 99990002
+           B  -> UPDATE 1
+[  1.52s] B> UPDATE accident SET recovered_bbls = recovered_bbls + 1 WHERE report_number = 99990001
+           B  -> UPDATE 1
+[  1.52s] B> COMMIT
+           B  -> COMMIT
+RESULT: 99990001 = 302.00, 99990002 = 302.00 - no deadlock, both sessions' changes applied (300 + 1 + 1)
+
+Transcript saved to C:\Users\Kefe\Downloads\advanced-database-portfolio\advanced-database-portfolio\portfolio-3-transactions-concurrency\results\concurrency_demo.log
