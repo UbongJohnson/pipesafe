@@ -1,0 +1,333 @@
+[
+  {
+    "_id": 20170094,
+    "schema_version": 2,
+    "report": {
+      "type": "SUPPLEMENTAL FINAL",
+      "received": "2017-03-10T00:00:00"
+    },
+    "accident_datetime": "2017-02-09T18:50:00",
+    "operator": {
+      "id": 31684,
+      "name": "PHILLIPS 66 PIPELINE LLC"
+    },
+    "facility": "RIVER PARISH PIPELINE SYSTEM",
+    "location": {
+      "on_off_shore": "ONSHORE",
+      "state": "LA",
+      "county": "ST CHARLES",
+      "city": "PARADIS",
+      "geo": {
+        "type": "Point",
+        "coordinates": [
+          -90.449469,
+          29.859893
+        ]
+      }
+    },
+    "commodity": {
+      "type": "HVL OR OTHER FLAMMABLE OR TOXIC FLUID WHICH IS A GAS AT AMBIENT CONDITIONS",
+      "subtype": "LPG (LIQUEFIED PETROLEUM GAS)  /  NGL (NATURAL GAS LIQUID)"
+    },
+    "system_part": "ONSHORE PIPELINE, INCLUDING VALVE SITES",
+    "item_involved": "AUXILIARY PIPING (E.G. DRAIN LINES)",
+    "release": {
+      "type": "OTHER",
+      "unintentional_bbls": 13465.0,
+      "intentional_bbls": 0.0,
+      "recovered_bbls": 0.0,
+      "ignited": true
+    },
+    "casualties": [
+      {
+        "group": "EMPLOYEE",
+        "fatalities": 1,
+        "injuries": 0
+      },
+      {
+        "group": "CONTRACTOR",
+        "fatalities": 0,
+        "injuries": 1
+      }
+    ],
+    "costs": {
+      "public_property_paid_by_operator": 0.0,
+      "commodity_lost": 390636.0,
+      "operator_property_damage": 1443222.0,
+      "emergency_response": 2669566.0,
+      "environmental_remediation": 0.0,
+      "other": 0.0
+    },
+    "total_cost_usd": 4503424.0,
+    "cause": {
+      "category": "INCORRECT OPERATION",
+      "detail": "VALVE LEFT OR PLACED IN WRONG POSITION, BUT NOT RESULTING IN A TANK, VESSEL, OR SUMP/SEPARATOR OVERFLOW OR FACILITY OVERPRESSURE",
+      "answers": {
+        "operation_type": "VALVE LEFT OR PLACED IN WRONG POSITION, BUT NOT RESULTING IN A TANK, VESSEL, OR SUMP/SEPARATOR OVERFLOW OR FACILITY OVERPRESSURE",
+        "related_failure_follow_ind": true,
+        "category_type": "ROUTINE MAINTENANCE",
+        "operator_qualification_ind": true,
+        "qualified_individuals": "YES, THEY WERE QUALIFIED FOR THE TASK(S)"
+      }
+    },
+    "environment": {
+      "wildlife_impact_ind": false,
+      "soil_contamination": false,
+      "long_term_assessment": false,
+      "remediation_ind": false,
+      "water_contam_ind": false,
+      "could_be_hca": true,
+      "commodity_reached_hca": true,
+      "other_pop_ind": true,
+      "other_pop_yes_no": true,
+      "usa_ecological_ind": true,
+      "usa_ecological_yes_no": true
+    },
+    "narrative": "THE VP-01 PIPELINE WAS BEING CLEANED USING A MAINTENANCE PIG ON 2/9/17 IN PREPARATION FOR A SMART TOOL RUN. THERE WERE SIX PERSONNEL THREE EMPLOYEES AND THREE CONTRACTORS WORKING - AT THE SCRAPER TRAP TO RECEIVE THE MAINTENANCE PIG. DURING THIS PROCESS THERE WAS A FIRE AT THE SITE.     UPDATE FOR SU..."
+  },
+  {
+    "_id": 20260182,
+    "schema_version": 2,
+    "report": {
+      "type": "ORIGINAL FINAL",
+      "received": "2026-08-06T00:00:00"
+    },
+    "accident_datetime": "2026-07-08T14:36:00",
+    "operator": {
+      "id": 22610,
+      "name": "MAGELLAN PIPELINE COMPANY, LP"
+    },
+    "facility": "EL PASO- ALBUQUERQUE",
+    "location": {
+      "on_off_shore": "ONSHORE",
+      "state": "TX",
+      "county": "EL PASO",
+      "city": "EL PASO",
+      "geo": {
+        "type": "Point",
+        "coordinates": [
+          -106.435145,
+          31.994682
+        ]
+      }
+    },
+    "commodity": {
+      "type": "REFINED AND/OR PETROLEUM PRODUCT (NON-HVL) WHICH IS A LIQUID AT AMBIENT CONDITIONS",
+      "subtype": "GASOLINE (NON-ETHANOL)"
+    },
+    "system_part": "ONSHORE PIPELINE, INCLUDING VALVE SITES",
+    "item_involved": "PIPE",
+    "release": {
+      "type": "MECHANICAL PUNCTURE",
+      "unintentional_bbls": 965.5,
+      "recovered_bbls": 233.48,
+      "ignited": false
+    },
+    "costs": {
+      "public_property_paid_by_operator": 0.0,
+      "commodity_lost": 173000.0,
+      "operator_property_damage": 500000.0,
+      "emergency_response": 500000.0,
+      "environmental_remediation": 1500000.0,
+      "other": 0.0
+    },
+    "total_cost_usd": 2673000.0,
+    "cause": {
+      "category": "EXCAVATION DAMAGE",
+      "detail": "EXCAVATION DAMAGE BY THIRD PARTY",
+      "answers": {
+        "ex_party_type": "EXCAVATION DAMAGE BY THIRD PARTY",
+        "prior_notification_ind": false,
+        "state_law_exempt_ind": false,
+        "notify_cga_dirt": false,
+        "pipeline_easement_row_ind": true,
+        "joint_trench_ind": false,
+        "cross_bore_ind": false,
+        "depth_of_grade": "< 18\ufffd",
+        "excavator_type": "CONTRACTOR",
+        "excavator_equipment": "DRILLING",
+        "work_performed": "ROAD WORK",
+        "one_call_notified_ind": false,
+        "locator_type": "UNKNOWN/OTHER",
+        "visible_marks": false,
+        "service_interruption": true,
+        "service_interruption_hours": 58,
+        "root_cause_type": "NO NOTIFICATION MADE TO THE ONE-CALL CENTER/811"
+      }
+    },
+    "environment": {
+      "wildlife_impact_ind": false,
+      "soil_contamination": true,
+      "long_term_assessment": false,
+      "remediation_ind": true,
+      "soil_remed_ind": true,
+      "water_contam_ind": false,
+      "could_be_hca": true,
+      "commodity_reached_hca": true,
+      "other_pop_ind": true,
+      "other_pop_yes_no": true,
+      "usa_ecological_ind": true,
+      "usa_ecological_yes_no": true
+    },
+    "narrative": "ON 7/8, OPERATIONS CONTROL RECEIVED A PRESSURE DROP NOTIFICATION ON THE 198 EL PASO JCT TO ALBUQUERQUE LINE. UPON RECEIVING THE NOTIFICATION, FIELD PERSONNEL WERE DISPATCHED TO INVESTIGATE. ONCE ON SITE, FIELD PERSONNEL CONFIRMED THAT A ROAD CONSTRUCTION CREW (DAN WILLIAM COMPANY) HAD STRUCK THE LIN..."
+  },
+  {
+    "_id": 20260244,
+    "schema_version": 2,
+    "report": {
+      "type": "ORIGINAL FINAL",
+      "received": "2026-10-14T00:00:00"
+    },
+    "accident_datetime": "2026-09-15T08:37:00",
+    "operator": {
+      "id": 30829,
+      "name": "ENTERPRISE CRUDE PIPELINE LLC"
+    },
+    "facility": "PLAINS MESA FACILITY",
+    "location": {
+      "on_off_shore": "ONSHORE",
+      "state": "TX",
+      "county": "MIDLAND",
+      "city": "MIDLAND",
+      "geo": {
+        "type": "Point",
+        "coordinates": [
+          -102.02763,
+          32.01812
+        ]
+      }
+    },
+    "commodity": {
+      "type": "CRUDE OIL"
+    },
+    "system_part": "ONSHORE PIPELINE, INCLUDING VALVE SITES",
+    "item_involved": "PIPE",
+    "release": {
+      "type": "LEAK",
+      "unintentional_bbls": 0.29,
+      "recovered_bbls": 0.29,
+      "ignited": false
+    },
+    "costs": {
+      "public_property_paid_by_operator": 0.0,
+      "commodity_lost": 70.0,
+      "operator_property_damage": 0.0,
+      "emergency_response": 0.0,
+      "environmental_remediation": 37500.0,
+      "other": 0.0
+    },
+    "total_cost_usd": 37570.0,
+    "cause": {
+      "category": "CORROSION FAILURE",
+      "detail": "EXTERNAL CORROSION",
+      "answers": {
+        "internal_external": "EXTERNAL CORROSION",
+        "visual_exam_results": "LOCALIZED PITTING",
+        "galvanic_corrosion_ind": true,
+        "field_exam_basis_ind": true,
+        "underground_location": true,
+        "under_cathodic_protection_ind": true,
+        "cathodic_pro_start_year": 1990,
+        "shielding_evident": true,
+        "cathodic_survey_type": true,
+        "cp_annual_survey_ind": true,
+        "cp_annual_survey_year": 2026,
+        "prior_damage": true
+      }
+    },
+    "environment": {
+      "wildlife_impact_ind": false,
+      "soil_contamination": true,
+      "long_term_assessment": false,
+      "remediation_ind": true,
+      "soil_remed_ind": true,
+      "water_contam_ind": false,
+      "could_be_hca": true,
+      "commodity_reached_hca": false
+    },
+    "inspection_history": {
+      "collected_data_ind": false,
+      "has_hydrtst_conduc_before_ind": true,
+      "direct_asmnt_conducted": false,
+      "non_destructive_exam_ind": false
+    },
+    "narrative": "ON 9/15/2026 AT 8:37 AM CST, THIRD PARTY OPERATOR DISCOVERED CRUDE RELEASE AT PLAINS DELIVERY STATION. APPROXIMATELY 0.29 BARRELS OF CRUDE OIL WAS RELEASED. LINE WAS IMMEDIATELY SHUTDOWN AND ISOLATED. UPON FURTHER INVESTIGATION, IT WAS DETERMINED THAT THE LEAK WAS CAUSED BY EXTERNAL CORROSION. REMED..."
+  },
+  {
+    "_id": 20260196,
+    "schema_version": 2,
+    "report": {
+      "type": "SUPPLEMENTAL FINAL",
+      "received": "2026-08-27T00:00:00"
+    },
+    "accident_datetime": "2026-08-25T12:00:00",
+    "operator": {
+      "id": 30020,
+      "name": "W & T OFFSHORE INC"
+    },
+    "facility": "MC 243 A \"MATTERHORN\"",
+    "location": {
+      "on_off_shore": "OFFSHORE",
+      "geo": {
+        "type": "Point",
+        "coordinates": [
+          -88.8255555,
+          28.7422222
+        ]
+      }
+    },
+    "commodity": {
+      "type": "CRUDE OIL"
+    },
+    "system_part": "OFFSHORE PIPELINE, INCLUDING RISER AND RISER BEND",
+    "item_involved": "PIPE",
+    "release": {
+      "type": "LEAK",
+      "unintentional_bbls": 0.1,
+      "recovered_bbls": 0.0,
+      "ignited": false
+    },
+    "costs": {
+      "public_property_paid_by_operator": 0.0,
+      "commodity_lost": 0.0,
+      "operator_property_damage": 147134.0,
+      "emergency_response": 23456.0,
+      "environmental_remediation": 0.0,
+      "other": 0.0
+    },
+    "total_cost_usd": 170590.0,
+    "cause": {
+      "category": "CORROSION FAILURE",
+      "detail": "EXTERNAL CORROSION",
+      "answers": {
+        "internal_external": "EXTERNAL CORROSION",
+        "visual_exam_results": "LOCALIZED PITTING",
+        "atmosphere_corrosion_ind": true,
+        "field_exam_basis_ind": true,
+        "underground_location": false,
+        "externally_coated": true,
+        "prior_damage": false,
+        "extrnl_cor_galvanic_ind": true
+      }
+    },
+    "environment": {
+      "wildlife_impact_ind": false,
+      "soil_contamination": false,
+      "long_term_assessment": false,
+      "remediation_ind": false,
+      "water_contam_ind": true,
+      "ocean_seawater_ind": true,
+      "amount_released": 0,
+      "rel_water_name": "GULF OF AMERICA",
+      "could_be_hca": false,
+      "commodity_reached_hca": false
+    },
+    "inspection_history": {
+      "collected_data_ind": false,
+      "has_hydrtst_conduc_before_ind": false,
+      "direct_asmnt_conducted": false,
+      "non_destructive_exam_ind": false
+    },
+    "narrative": "DURING ROUTINE INSPECTION OF THE PLATFORM, PLATFORM PERSONNEL OBSERVE SHEEN ON THE WATER. PERSONNEL INVESTIGATED SOURCE OF SHEEN AND FOUND PINHOLES ON THE 8.625 DEPARTING OIL PIPELINE. THE PIPELINE PRESSURE AT THE TIME OF THE ACCIDENT WAS 125 PSI AND PIN HOLE LEAKS DID NOT CAUSE A DROP IN PRESSURE T..."
+  }
+]
