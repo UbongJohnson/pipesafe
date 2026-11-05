@@ -16,7 +16,7 @@ Windows (Portfolios 1-4), from the repository folder:
 WSL / Linux (Portfolio 5 needs Linux):
     python3 run_and_capture.py --portfolios 5 \\
         --data /mnt/c/path/to/accident_hazardous_liquid_jan2010_present.txt \\
-        --pg-bin /usr/lib/postgresql/16/bin
+        --pg-bin /usr/lib/postgresql/18/bin
 
 Options:
     --host / --port / --user / --password / --dbname   PostgreSQL connection (Portfolios 1-3)
@@ -24,9 +24,10 @@ Options:
     --pg-bin FOLDER      PostgreSQL programs folder (Portfolio 5)
 
 Output: <portfolio>/screenshots/NN_name.png (+ .txt), and fresh results/ files.
-Portfolio 1 REBUILDS the pipesafe database from the raw file.
+Portfolio 1 creates the pipesafe database if it does not exist, then REBUILDS
+it from the raw file. Portfolios 2 and 3 need Portfolio 1's data already loaded.
 """
-import argparse, datetime, getpass, glob, os, platform, shutil, socket, subprocess, sys, textwrap
+import argparse, datetime, getpass, glob, os, platform, re, shutil, socket, subprocess, sys, textwrap
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 P1 = os.path.join(ROOT, "portfolio-1-database-design")
@@ -106,7 +107,10 @@ class Runner:
         found = shutil.which("psql")
         if found:
             return found
-        for path in sorted(glob.glob(r"C:\Program Files\PostgreSQL\*\bin\psql.exe"), reverse=True):
+        def version(path):          # newest install first: 18 before 9
+            v = os.path.basename(os.path.dirname(os.path.dirname(path)))
+            return int(v) if v.isdigit() else 0
+        for path in sorted(glob.glob(r"C:\Program Files\PostgreSQL\*\bin\psql.exe"), key=version, reverse=True):
             return path
         if self.args.pg_bin and os.path.exists(os.path.join(self.args.pg_bin, "psql")):
             return os.path.join(self.args.pg_bin, "psql")
@@ -115,12 +119,45 @@ class Runner:
     def psql(self, *extra, port=None, db=None):
         a = self.args
         return [self.psql_path(), "-h", a.host, "-p", str(port or a.port), "-U", a.user,
-                "-d", db or a.dbname, "-X", "-v", "ON_ERROR_STOP=0", *extra]
+                "-d", db or a.dbname, "-X", "-w", "-v", "ON_ERROR_STOP=0", *extra]   # -w: never wait at a password prompt
 
     def dsn(self):
         a = self.args
         d = f"dbname={a.dbname} user={a.user} host={a.host} port={a.port}"
         return d + (f" password={a.password}" if a.password else "")
+
+    def query_value(self, sql, db):
+        """Run one query quietly; return (ok, first value or error text)."""
+        r = subprocess.run(self.psql("-tA", "-v", "ON_ERROR_STOP=1", "-c", sql, db=db),
+                           env=self.env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                           text=True, encoding="utf-8", errors="replace")
+        return r.returncode == 0, r.stdout.strip()
+
+    def ensure_database(self, rebuilding):
+        """Check the server can be reached, create the database if it is missing,
+        and (when Portfolio 1 is not being run) check its data is already loaded."""
+        a = self.args
+        if not re.fullmatch(r"[a-z_][a-z0-9_]*", a.dbname):
+            sys.exit(f"--dbname must be lower-case letters, digits and _ only (got {a.dbname!r}).")
+        ok, out = self.query_value("SELECT version()", db="postgres")
+        if not ok:
+            sys.exit("Cannot connect to PostgreSQL (database 'postgres'):\n  " + out +
+                     "\nCheck the server is running and pass --password (or set PGPASSWORD).")
+        print(f"Connected: {out}")
+        ok, out = self.query_value(f"SELECT 1 FROM pg_database WHERE datname = '{a.dbname}'", db="postgres")
+        if out != "1":
+            if not rebuilding:
+                sys.exit(f"The {a.dbname} database does not exist yet. "
+                         "Run Portfolio 1 first (add 1 to --portfolios); it creates and loads it.")
+            self.step(P1, "create_database", f"Portfolio 1 - create the {a.dbname} database",
+                      self.psql("-v", "ON_ERROR_STOP=1", "-c",
+                                f"CREATE DATABASE {a.dbname} ENCODING 'UTF8' TEMPLATE template0",
+                                db="postgres"), critical=True)
+        if not rebuilding:
+            ok, out = self.query_value("SELECT COUNT(*) FROM pipesafe.accident", db=a.dbname)
+            if not ok or out in ("", "0"):
+                sys.exit(f"The {a.dbname} database has no PipeSafe data yet. "
+                         "Run Portfolio 1 first (add 1 to --portfolios).")
 
     def shown(self, cmd):
         text = " ".join(f'"{c}"' if " " in c else c for c in cmd)
@@ -236,7 +273,7 @@ def portfolio_5(r, a):
         print("[portfolio-5-distributed-cloud] skipped: run Portfolio 5 inside WSL/Linux")
         return
     if not a.pg_bin:
-        sys.exit("Portfolio 5 needs --pg-bin (e.g. /usr/lib/postgresql/16/bin)")
+        sys.exit("Portfolio 5 needs --pg-bin (e.g. /usr/lib/postgresql/18/bin)")
     cluster = os.path.join(P5, "cluster")
     if os.path.exists(cluster):
         sys.exit(f"{cluster} already exists. Stop it (scripts/stop_cluster.sh ./cluster) and delete it first.")
@@ -296,6 +333,8 @@ def main():
     r = Runner(a)
     wanted = [s.strip() for s in a.portfolios.split(",")]
     print(f"Evidence stamp: {STAMP}\n")
+    if any(k in wanted for k in ("1", "2", "3")):      # these use the local PostgreSQL server
+        r.ensure_database(rebuilding="1" in wanted)
     for key, fn in [("1", portfolio_1), ("2", portfolio_2), ("3", portfolio_3),
                     ("4", portfolio_4), ("5", portfolio_5)]:
         if key in wanted:

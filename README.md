@@ -34,12 +34,12 @@ pip install psycopg2-binary pymongo pandas numpy pillow
 python run_and_capture.py --portfolios 1,2,3,4 --data PATH\TO\accident_hazardous_liquid_jan2010_present.txt --password YOUR_POSTGRES_PASSWORD --mongo "mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/"
 
 # WSL / Linux: Portfolio 5
-python3 run_and_capture.py --portfolios 5 --data /mnt/c/PATH/TO/accident_hazardous_liquid_jan2010_present.txt --pg-bin /usr/lib/postgresql/16/bin
+python3 run_and_capture.py --portfolios 5 --data /mnt/c/PATH/TO/accident_hazardous_liquid_jan2010_present.txt --pg-bin /usr/lib/postgresql/18/bin
 ```
 
 ## Tools
 
-- **PostgreSQL 16:** relational database, replication, `postgres_fdw` sharding
+- **PostgreSQL 18:** relational database, replication, `postgres_fdw` sharding
 - **Python 3:** pandas (data preparation), psycopg2 (PostgreSQL), pymongo (MongoDB)
 - **MongoDB Atlas:** document database and cloud replica set (Portfolios 4 and 5)
 - **dbdiagram.io:** ER diagram

@@ -75,7 +75,7 @@ def main():
             cur.execute("CHECKPOINT")
             for q, sql in queries.items():
                 ms, plan, text_plan, rows = measure(cur, sql)
-                with open(os.path.join(RESULTS, f"{schema}_{phase}_{q}.txt"), "w") as f:
+                with open(os.path.join(RESULTS, f"{schema}_{phase}_{q}.txt"), "w", encoding="utf-8") as f:
                     f.write(f"-- {schema} / {phase} / {q}\n{sql};\n\n{text_plan}\n")
                 rows_out.append({"schema": schema, "phase": phase, "query": q,
                                  "median_ms": round(ms, 2), "rows": len(rows),
@@ -94,7 +94,7 @@ def main():
                          "median_ms": round(refresh_ms, 2), "rows": "", "accident_scan": "", "result_hash": None})
         print(f"{schema:9s} REFRESH MATERIALIZED VIEW CONCURRENTLY: {refresh_ms:.0f} ms")
     # leave the database in the optimised state
-    with open(os.path.join(RESULTS, "timings.csv"), "w", newline="") as f:
+    with open(os.path.join(RESULTS, "timings.csv"), "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=["schema", "phase", "query", "median_ms", "rows", "accident_scan"])
         w.writeheader()
         for r in rows_out:

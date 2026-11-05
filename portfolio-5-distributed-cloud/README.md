@@ -37,7 +37,7 @@ cd portfolio-5-distributed-cloud
 pip install psycopg2-binary
 
 # 1. Build the cluster (pauses so you can load the data into the primary)
-PG_BIN=/usr/lib/postgresql/16/bin ./scripts/setup_cluster.sh ./cluster
+PG_BIN=/usr/lib/postgresql/18/bin ./scripts/setup_cluster.sh ./cluster
 #    In a second terminal, from portfolio-1-database-design:
 #      psql -h /tmp -p 5601 -U postgres -d pipesafe -f sql/01_create_tables.sql
 #      psql -h /tmp -p 5601 -U postgres -d pipesafe -f sql/02_load_data.sql
@@ -50,13 +50,13 @@ psql -h /tmp -p 5601 -U postgres -d pipesafe -f sql/02_coordinator.sql
 psql -h /tmp -p 5601 -U postgres -d pipesafe -e -f sql/03_sharding_queries.sql
 
 # 3. Replication, consistency and failover
-python scripts/replication_demo.py ./cluster /usr/lib/postgresql/16/bin /tmp
+python scripts/replication_demo.py ./cluster /usr/lib/postgresql/18/bin /tmp
 
 # 4. Stop everything (delete ./cluster to start again from scratch)
 ./scripts/stop_cluster.sh ./cluster
 ```
 
-Change `/usr/lib/postgresql/16/bin` to your PostgreSQL version. After step 3 the old primary is permanently replaced, so rebuild the cluster to run it again.
+Change `/usr/lib/postgresql/18/bin` to your PostgreSQL version. After step 3 the old primary is permanently replaced, so rebuild the cluster to run it again.
 
 **Cloud evidence (MongoDB Atlas, from Portfolio 4):**
 ```bash

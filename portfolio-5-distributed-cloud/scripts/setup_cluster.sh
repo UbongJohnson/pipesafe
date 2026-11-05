@@ -11,7 +11,7 @@
 # instance with its own data folder, port and processes. On a real
 # deployment each would run on its own machine or cloud VM.
 #
-# Usage:  PG_BIN=/usr/lib/postgresql/16/bin ./scripts/setup_cluster.sh ./cluster
+# Usage:  PG_BIN=/usr/lib/postgresql/18/bin ./scripts/setup_cluster.sh ./cluster
 # =====================================================================
 set -euo pipefail
 PG_BIN="${PG_BIN:-$(dirname "$(command -v pg_ctl)")}"

@@ -16,7 +16,7 @@ Scenarios
 WARNING: R6 stops the primary for good. To run again, rebuild the cluster.
 
 Usage:
-    python scripts/replication_demo.py ./cluster [/usr/lib/postgresql/16/bin] [/tmp]
+    python scripts/replication_demo.py ./cluster [/usr/lib/postgresql/18/bin] [/tmp]
 Writes results/replication_demo.log
 """
 import os, statistics, subprocess, sys, threading, time
