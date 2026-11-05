@@ -1,39 +1,39 @@
 schema,phase,query,median_ms,rows,accident_scan
-pipesafe,before,Q1,4.12,135,Seq Scan
-pipesafe,before,Q2,28.95,10,Seq Scan
-pipesafe,before,Q3,1.06,147,Seq Scan
-pipesafe,before,Q4,0.76,215,Seq Scan
-pipesafe,before,Q5,3.64,5,Seq Scan
-pipesafe,before,Q6,32.16,36,Seq Scan
-pipesafe,before,Q7,1.85,8,Seq Scan
-pipesafe,before,Q8,37.9,10,Seq Scan
-pipesafe,after,Q1,4.31,135,Seq Scan
-pipesafe,after,Q2,13.18,10,Seq Scan
-pipesafe,after,Q3,0.2,147,Index Scan (idx_accident_datetime)
-pipesafe,after,Q4,0.13,215,Bitmap Heap Scan
-pipesafe,after,Q5,3.66,5,Seq Scan
-pipesafe,after,Q6,0.3,36,Bitmap Heap Scan
-pipesafe,after,Q7,0.46,8,Bitmap Heap Scan
-pipesafe,after,Q8,17.96,10,Seq Scan
-pipesafe,after,Q2b,2.05,10,
-pipesafe,after,Q8b,0.07,10,Index Scan (accident_pkey)
-pipesafe,refresh,REFRESH mv_accident_totals,50.43,,
-bench,before,Q1,290.97,135,Seq Scan
-bench,before,Q2,2229.93,10,Seq Scan
-bench,before,Q3,93.46,14700,Seq Scan
-bench,before,Q4,92.31,21500,Seq Scan
-bench,before,Q5,227.19,5,Seq Scan
-bench,before,Q6,1584.55,3600,Seq Scan
-bench,before,Q7,164.5,8,Seq Scan
-bench,before,Q8,2673.76,10,Seq Scan
-bench,after,Q1,291.93,135,Seq Scan
-bench,after,Q2,1704.43,10,Index Scan (accident_pkey)
-bench,after,Q3,10.31,14700,Index Scan (idx_accident_datetime)
-bench,after,Q4,8.19,21500,Bitmap Heap Scan
-bench,after,Q5,228.71,5,Seq Scan
-bench,after,Q6,23.4,3600,Bitmap Heap Scan
-bench,after,Q7,25.2,8,Bitmap Heap Scan
-bench,after,Q8,2117.01,10,Index Scan (accident_pkey)
-bench,after,Q2b,100.98,10,
-bench,after,Q8b,0.06,10,Index Scan (accident_pkey)
-bench,refresh,REFRESH mv_accident_totals,3288.78,,
+pipesafe,before,Q1,23.04,135,Seq Scan
+pipesafe,before,Q2,117.52,10,Seq Scan
+pipesafe,before,Q3,4.55,147,Seq Scan
+pipesafe,before,Q4,3.11,215,Seq Scan
+pipesafe,before,Q5,19.8,5,Seq Scan
+pipesafe,before,Q6,186.48,36,Seq Scan
+pipesafe,before,Q7,6.68,8,Seq Scan
+pipesafe,before,Q8,102.36,10,Seq Scan
+pipesafe,after,Q1,24.16,135,Seq Scan
+pipesafe,after,Q2,69.01,10,Seq Scan
+pipesafe,after,Q3,1.02,147,Index Scan (idx_accident_datetime)
+pipesafe,after,Q4,0.62,215,Bitmap Heap Scan
+pipesafe,after,Q5,14.59,5,Seq Scan
+pipesafe,after,Q6,1.79,36,Bitmap Heap Scan
+pipesafe,after,Q7,1.49,8,Bitmap Heap Scan
+pipesafe,after,Q8,75.64,10,Seq Scan
+pipesafe,after,Q2b,5.42,10,
+pipesafe,after,Q8b,0.3,10,Index Scan (accident_pkey)
+pipesafe,refresh,REFRESH mv_accident_totals,329.5,,
+bench,before,Q1,1284.49,135,Seq Scan
+bench,before,Q2,20629.87,10,Seq Scan
+bench,before,Q3,2097.39,14700,Seq Scan
+bench,before,Q4,1632.21,21500,Seq Scan
+bench,before,Q5,1196.71,5,Seq Scan
+bench,before,Q6,8838.18,3600,Seq Scan
+bench,before,Q7,744.28,8,Seq Scan
+bench,before,Q8,49370.18,10,Seq Scan
+bench,after,Q1,2203.18,135,Seq Scan
+bench,after,Q2,8940.89,10,Index Scan (accident_pkey)
+bench,after,Q3,46.04,14700,Index Scan (idx_accident_datetime)
+bench,after,Q4,37.97,21500,Bitmap Heap Scan
+bench,after,Q5,1336.43,5,Seq Scan
+bench,after,Q6,179.43,3600,Bitmap Heap Scan
+bench,after,Q7,145.79,8,Bitmap Heap Scan
+bench,after,Q8,20539.51,10,Index Scan (accident_pkey)
+bench,after,Q2b,609.48,10,
+bench,after,Q8b,0.35,10,Index Scan (accident_pkey)
+bench,refresh,REFRESH mv_accident_totals,35272.14,,

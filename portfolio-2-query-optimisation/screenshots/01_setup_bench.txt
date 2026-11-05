@@ -1,0 +1,39 @@
+psql:sql/01_setup_bench.sql:14: NOTICE:  schema "bench" does not exist, skipping
+DROP SCHEMA
+CREATE SCHEMA
+SELECT 361
+SELECT 977
+SELECT 52
+SELECT 8
+SELECT 41
+SELECT 5
+SELECT 14
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+SELECT 605200
+ALTER TABLE
+SELECT 3626100
+ALTER TABLE
+SELECT 2600
+ALTER TABLE
+SELECT 132800
+ALTER TABLE
+SET
+CREATE VIEW
+VACUUM
+VACUUM
+VACUUM
+VACUUM
+    table_name    |  count  
+------------------+---------
+ accident         |  605200
+ accident_cost    | 3626100
+ casualty         |    2600
+ corrosion_detail |  132800
+(4 rows)

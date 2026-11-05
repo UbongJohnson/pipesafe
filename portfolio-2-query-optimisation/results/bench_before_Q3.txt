@@ -8,31 +8,31 @@ WHERE co.state_code = 'TX'
   AND a.accident_datetime <  '2024-01-01'
 ORDER BY a.accident_datetime DESC;
 
-Gather Merge  (cost=86282.90..86903.38 rows=5318 width=33) (actual time=87.342..91.286 rows=14700 loops=1)
+Gather Merge  (cost=86296.74..87065.42 rows=6600 width=33) (actual time=1803.932..1820.929 rows=14700.00 loops=1)
   Workers Planned: 2
   Workers Launched: 2
-  Buffers: shared hit=1094 read=80416
-  ->  Sort  (cost=85282.88..85289.53 rows=2659 width=33) (actual time=74.354..74.566 rows=4900 loops=3)
+  Buffers: shared hit=2576 read=78742
+  ->  Sort  (cost=85296.71..85303.59 rows=2750 width=33) (actual time=1712.219..1712.658 rows=4900.00 loops=3)
         Sort Key: a.accident_datetime DESC
-        Sort Method: quicksort  Memory: 662kB
-        Buffers: shared hit=1094 read=80416
-        Worker 0:  Sort Method: quicksort  Memory: 284kB
-        Worker 1:  Sort Method: quicksort  Memory: 337kB
-        ->  Hash Join  (cost=22.80..85131.63 rows=2659 width=33) (actual time=66.532..73.708 rows=4900 loops=3)
+        Sort Method: quicksort  Memory: 426kB
+        Buffers: shared hit=2576 read=78742
+        Worker 0:  Sort Method: quicksort  Memory: 453kB
+        Worker 1:  Sort Method: quicksort  Memory: 481kB
+        ->  Hash Join  (cost=22.80..85139.62 rows=2750 width=33) (actual time=1410.906..1709.178 rows=4900.00 loops=3)
               Hash Cond: (a.county_id = co.county_id)
-              Buffers: shared hit=982 read=80416
-              ->  Parallel Seq Scan on accident a  (cost=0.00..85075.05 rows=12812 width=29) (actual time=40.252..72.595 rows=9967 loops=3)
+              Buffers: shared hit=2562 read=78742
+              ->  Parallel Seq Scan on accident a  (cost=0.00..85081.93 rows=13237 width=29) (actual time=1409.214..1703.085 rows=9966.67 loops=3)
                     Filter: ((accident_datetime >= '2023-01-01 00:00:00'::timestamp without time zone) AND (accident_datetime < '2024-01-01 00:00:00'::timestamp without time zone))
                     Rows Removed by Filter: 191767
-                    Buffers: shared hit=864 read=80416
-              ->  Hash  (cost=20.21..20.21 rows=207 width=12) (actual time=0.091..0.092 rows=207 loops=3)
+                    Buffers: shared hit=2538 read=78742
+              ->  Hash  (cost=20.21..20.21 rows=207 width=12) (actual time=1.618..1.619 rows=207.00 loops=3)
                     Buckets: 1024  Batches: 1  Memory Usage: 18kB
                     Buffers: shared hit=24
-                    ->  Seq Scan on county co  (cost=0.00..20.21 rows=207 width=12) (actual time=0.040..0.063 rows=207 loops=3)
+                    ->  Seq Scan on county co  (cost=0.00..20.21 rows=207 width=12) (actual time=1.282..1.463 rows=207.00 loops=3)
                           Filter: (state_code = 'TX'::bpchar)
                           Rows Removed by Filter: 770
                           Buffers: shared hit=24
 Planning:
   Buffers: shared hit=6
-Planning Time: 0.120 ms
-Execution Time: 91.788 ms
+Planning Time: 0.419 ms
+Execution Time: 1821.962 ms

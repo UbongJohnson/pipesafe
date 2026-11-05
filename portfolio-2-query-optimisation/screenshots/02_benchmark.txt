@@ -1,0 +1,60 @@
+pipesafe  before Q1:     23.04 ms     135 rows  ['Seq Scan']
+pipesafe  before Q2:    117.52 ms      10 rows  ['Seq Scan']
+pipesafe  before Q3:      4.55 ms     147 rows  ['Seq Scan']
+pipesafe  before Q4:      3.11 ms     215 rows  ['Seq Scan']
+pipesafe  before Q5:     19.80 ms       5 rows  ['Seq Scan']
+pipesafe  before Q6:    186.48 ms      36 rows  ['Seq Scan']
+pipesafe  before Q7:      6.68 ms       8 rows  ['Seq Scan']
+pipesafe  before Q8:    102.36 ms      10 rows  ['Seq Scan']
+pipesafe  after  Q1:     24.16 ms     135 rows  ['Seq Scan']
+pipesafe  after  Q2:     69.01 ms      10 rows  ['Seq Scan']
+pipesafe  after  Q3:      1.02 ms     147 rows  ['Index Scan (idx_accident_datetime)']
+pipesafe  after  Q4:      0.62 ms     215 rows  ['Bitmap Heap Scan']
+pipesafe  after  Q5:     14.59 ms       5 rows  ['Seq Scan']
+pipesafe  after  Q6:      1.79 ms      36 rows  ['Bitmap Heap Scan']
+pipesafe  after  Q7:      1.49 ms       8 rows  ['Bitmap Heap Scan']
+pipesafe  after  Q8:     75.64 ms      10 rows  ['Seq Scan']
+pipesafe  after  Q2b:      5.42 ms      10 rows  []
+pipesafe  after  Q8b:      0.30 ms      10 rows  ['Index Scan (accident_pkey)']
+pipesafe  REFRESH MATERIALIZED VIEW CONCURRENTLY: 329 ms
+bench     before Q1:   1284.49 ms     135 rows  ['Seq Scan']
+bench     before Q2:  20629.87 ms      10 rows  ['Seq Scan']
+bench     before Q3:   2097.39 ms   14700 rows  ['Seq Scan']
+bench     before Q4:   1632.21 ms   21500 rows  ['Seq Scan']
+bench     before Q5:   1196.71 ms       5 rows  ['Seq Scan']
+bench     before Q6:   8838.18 ms    3600 rows  ['Seq Scan']
+bench     before Q7:    744.28 ms       8 rows  ['Seq Scan']
+bench     before Q8:  49370.18 ms      10 rows  ['Seq Scan']
+bench     after  Q1:   2203.18 ms     135 rows  ['Seq Scan']
+bench     after  Q2:   8940.89 ms      10 rows  ['Index Scan (accident_pkey)']
+bench     after  Q3:     46.04 ms   14700 rows  ['Index Scan (idx_accident_datetime)']
+bench     after  Q4:     37.97 ms   21500 rows  ['Bitmap Heap Scan']
+bench     after  Q5:   1336.43 ms       5 rows  ['Seq Scan']
+bench     after  Q6:    179.43 ms    3600 rows  ['Bitmap Heap Scan']
+bench     after  Q7:    145.79 ms       8 rows  ['Bitmap Heap Scan']
+bench     after  Q8:  20539.51 ms      10 rows  ['Index Scan (accident_pkey)']
+bench     after  Q2b:    609.48 ms      10 rows  []
+bench     after  Q8b:      0.35 ms      10 rows  ['Index Scan (accident_pkey)']
+bench     REFRESH MATERIALIZED VIEW CONCURRENTLY: 35272 ms
+
+Result check (optimised query returns identical rows):
+  pipesafe  Q1  vs Q1: identical
+  pipesafe  Q2  vs Q2: identical
+  pipesafe  Q2b vs Q2: identical
+  pipesafe  Q3  vs Q3: identical
+  pipesafe  Q4  vs Q4: identical
+  pipesafe  Q5  vs Q5: identical
+  pipesafe  Q6  vs Q6: identical
+  pipesafe  Q7  vs Q7: identical
+  pipesafe  Q8  vs Q8: identical
+  pipesafe  Q8b vs Q8: identical
+  bench     Q1  vs Q1: identical
+  bench     Q2  vs Q2: identical
+  bench     Q2b vs Q2: identical
+  bench     Q3  vs Q3: identical
+  bench     Q4  vs Q4: identical
+  bench     Q5  vs Q5: identical
+  bench     Q6  vs Q6: identical
+  bench     Q7  vs Q7: identical
+  bench     Q8  vs Q8: identical
+  bench     Q8b vs Q8: identical

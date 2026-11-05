@@ -8,25 +8,25 @@ WHERE co.state_code = 'TX'
   AND a.accident_datetime <  '2024-01-01'
 ORDER BY a.accident_datetime DESC;
 
-Sort  (cost=946.35..946.51 rows=65 width=33) (actual time=1.091..1.098 rows=147 loops=1)
+Sort  (cost=946.35..946.51 rows=65 width=33) (actual time=16.659..16.679 rows=147.00 loops=1)
   Sort Key: a.accident_datetime DESC
-  Sort Method: quicksort  Memory: 33kB
+  Sort Method: quicksort  Memory: 32kB
   Buffers: shared hit=838
-  ->  Hash Join  (cost=20.80..944.39 rows=65 width=33) (actual time=0.805..1.070 rows=147 loops=1)
+  ->  Hash Join  (cost=20.80..944.39 rows=65 width=33) (actual time=15.576..16.548 rows=147.00 loops=1)
         Hash Cond: (a.county_id = co.county_id)
         Buffers: shared hit=838
-        ->  Seq Scan on accident a  (cost=0.00..922.78 rows=308 width=29) (actual time=0.729..0.919 rows=299 loops=1)
+        ->  Seq Scan on accident a  (cost=0.00..922.78 rows=308 width=29) (actual time=8.956..9.770 rows=299.00 loops=1)
               Filter: ((accident_datetime >= '2023-01-01 00:00:00'::timestamp without time zone) AND (accident_datetime < '2024-01-01 00:00:00'::timestamp without time zone))
               Rows Removed by Filter: 5753
               Buffers: shared hit=832
-        ->  Hash  (cost=18.21..18.21 rows=207 width=12) (actual time=0.071..0.071 rows=207 loops=1)
+        ->  Hash  (cost=18.21..18.21 rows=207 width=12) (actual time=6.608..6.609 rows=207.00 loops=1)
               Buckets: 1024  Batches: 1  Memory Usage: 18kB
               Buffers: shared hit=6
-              ->  Seq Scan on county co  (cost=0.00..18.21 rows=207 width=12) (actual time=0.031..0.050 rows=207 loops=1)
+              ->  Seq Scan on county co  (cost=0.00..18.21 rows=207 width=12) (actual time=6.242..6.512 rows=207.00 loops=1)
                     Filter: (state_code = 'TX'::bpchar)
                     Rows Removed by Filter: 770
                     Buffers: shared hit=6
 Planning:
   Buffers: shared hit=6
-Planning Time: 0.094 ms
-Execution Time: 1.114 ms
+Planning Time: 0.379 ms
+Execution Time: 16.744 ms

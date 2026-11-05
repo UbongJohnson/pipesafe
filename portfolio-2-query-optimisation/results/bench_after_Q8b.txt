@@ -13,34 +13,39 @@ JOIN cause_detail   cd ON cd.cause_detail_id   = a.cause_detail_id
 JOIN cause_category cc ON cc.cause_category_id = cd.cause_category_id
 ORDER BY m.total_cost_usd DESC, m.report_number;
 
-Nested Loop  (cost=1.14..91.07 rows=10 width=83) (actual time=0.014..0.042 rows=10 loops=1)
+Nested Loop  (cost=1.14..91.07 rows=10 width=83) (actual time=0.081..0.216 rows=10.00 loops=1)
   Join Filter: (cc.cause_category_id = cd.cause_category_id)
   Rows Removed by Join Filter: 40
   Buffers: shared hit=85
-  ->  Nested Loop  (cost=1.14..88.81 rows=10 width=67) (actual time=0.008..0.030 rows=10 loops=1)
+  ->  Nested Loop  (cost=1.14..88.81 rows=10 width=67) (actual time=0.042..0.151 rows=10.00 loops=1)
         Buffers: shared hit=84
-        ->  Nested Loop  (cost=1.00..87.24 rows=10 width=67) (actual time=0.007..0.024 rows=10 loops=1)
+        ->  Nested Loop  (cost=1.00..87.24 rows=10 width=67) (actual time=0.037..0.120 rows=10.00 loops=1)
               Buffers: shared hit=64
-              ->  Nested Loop  (cost=0.85..85.59 rows=10 width=44) (actual time=0.006..0.017 rows=10 loops=1)
+              ->  Nested Loop  (cost=0.85..85.59 rows=10 width=44) (actual time=0.031..0.087 rows=10.00 loops=1)
                     Buffers: shared hit=44
-                    ->  Limit  (cost=0.42..1.06 rows=10 width=34) (actual time=0.003..0.005 rows=10 loops=1)
+                    ->  Limit  (cost=0.42..1.06 rows=10 width=34) (actual time=0.018..0.027 rows=10.00 loops=1)
                           Buffers: shared hit=4
-                          ->  Index Scan using mv_accident_totals_cost on mv_accident_totals  (cost=0.42..38558.48 rows=605200 width=34) (actual time=0.003..0.004 rows=10 loops=1)
+                          ->  Index Scan using mv_accident_totals_cost on mv_accident_totals  (cost=0.42..38564.89 rows=605200 width=34) (actual time=0.017..0.024 rows=10.00 loops=1)
+                                Index Searches: 1
                                 Buffers: shared hit=4
-                    ->  Index Scan using accident_pkey on accident a  (cost=0.42..8.44 rows=1 width=22) (actual time=0.001..0.001 rows=1 loops=10)
+                    ->  Index Scan using accident_pkey on accident a  (cost=0.42..8.44 rows=1 width=22) (actual time=0.004..0.004 rows=1.00 loops=10)
                           Index Cond: (report_number = mv_accident_totals.report_number)
+                          Index Searches: 10
                           Buffers: shared hit=40
-              ->  Index Scan using operator_pkey on operator o  (cost=0.15..0.17 rows=1 width=31) (actual time=0.000..0.000 rows=1 loops=10)
+              ->  Index Scan using operator_pkey on operator o  (cost=0.15..0.17 rows=1 width=31) (actual time=0.002..0.002 rows=1.00 loops=10)
                     Index Cond: (operator_id = a.operator_id)
+                    Index Searches: 10
                     Buffers: shared hit=20
-        ->  Index Scan using cause_detail_pkey on cause_detail cd  (cost=0.14..0.16 rows=1 width=4) (actual time=0.000..0.000 rows=1 loops=10)
+        ->  Index Scan using cause_detail_pkey on cause_detail cd  (cost=0.14..0.16 rows=1 width=4) (actual time=0.002..0.002 rows=1.00 loops=10)
               Index Cond: (cause_detail_id = a.cause_detail_id)
+              Index Searches: 10
               Buffers: shared hit=20
-  ->  Materialize  (cost=0.00..1.12 rows=8 width=24) (actual time=0.000..0.001 rows=5 loops=10)
+  ->  Materialize  (cost=0.00..1.12 rows=8 width=24) (actual time=0.003..0.004 rows=5.00 loops=10)
+        Storage: Memory  Maximum Storage: 17kB
         Buffers: shared hit=1
-        ->  Seq Scan on cause_category cc  (cost=0.00..1.08 rows=8 width=24) (actual time=0.001..0.002 rows=5 loops=1)
+        ->  Seq Scan on cause_category cc  (cost=0.00..1.08 rows=8 width=24) (actual time=0.025..0.026 rows=5.00 loops=1)
               Buffers: shared hit=1
 Planning:
   Buffers: shared hit=28
-Planning Time: 0.218 ms
-Execution Time: 0.056 ms
+Planning Time: 1.316 ms
+Execution Time: 0.292 ms

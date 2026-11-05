@@ -1,0 +1,22 @@
+-- bench / after / Q6
+SELECT a.report_number, a.accident_datetime, LEFT(a.narrative, 80) AS narrative_start
+FROM accident a
+WHERE a.narrative ILIKE '%frozen%'
+ORDER BY a.accident_datetime DESC;
+
+Sort  (cost=352.33..352.47 rows=57 width=48) (actual time=254.535..254.828 rows=3600.00 loops=1)
+  Sort Key: accident_datetime DESC
+  Sort Method: quicksort  Memory: 518kB
+  Buffers: shared hit=678
+  ->  Bitmap Heap Scan on accident a  (cost=126.34..350.67 rows=57 width=48) (actual time=5.462..251.337 rows=3600.00 loops=1)
+        Recheck Cond: (narrative ~~* '%frozen%'::text)
+        Heap Blocks: exact=593
+        Buffers: shared hit=678
+        ->  Bitmap Index Scan on idx_accident_narrative_trgm  (cost=0.00..126.33 rows=57 width=0) (actual time=5.257..5.258 rows=3600.00 loops=1)
+              Index Cond: (narrative ~~* '%frozen%'::text)
+              Index Searches: 1
+              Buffers: shared hit=85
+Planning:
+  Buffers: shared hit=1
+Planning Time: 4.547 ms
+Execution Time: 255.093 ms

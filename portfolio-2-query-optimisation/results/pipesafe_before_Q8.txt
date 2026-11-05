@@ -5,81 +5,78 @@ FROM v_accident_summary
 ORDER BY total_cost_usd DESC, report_number
 LIMIT 10;
 
-Limit  (cost=105108.13..105306.78 rows=10 width=109) (actual time=36.667..36.699 rows=10 loops=1)
+Limit  (cost=105108.13..105306.78 rows=10 width=109) (actual time=120.941..121.243 rows=10.00 loops=1)
   Buffers: shared hit=19193
-  ->  Result  (cost=105108.13..225331.11 rows=6052 width=109) (actual time=21.742..21.773 rows=10 loops=1)
+  ->  Result  (cost=105108.13..225331.11 rows=6052 width=109) (actual time=120.940..121.239 rows=10.00 loops=1)
         Buffers: shared hit=19193
-        ->  Sort  (cost=105108.13..105123.26 rows=6052 width=93) (actual time=21.715..21.720 rows=10 loops=1)
+        ->  Sort  (cost=105108.13..105123.26 rows=6052 width=93) (actual time=120.852..120.862 rows=10.00 loops=1)
               Sort Key: (COALESCE((SubPlan 1), '0'::numeric)) DESC, a.report_number
               Sort Method: top-N heapsort  Memory: 26kB
               Buffers: shared hit=19173
-              ->  Hash Join  (cost=18.65..104977.35 rows=6052 width=93) (actual time=0.146..20.113 rows=6052 loops=1)
+              ->  Hash Join  (cost=18.65..104977.35 rows=6052 width=93) (actual time=0.506..115.540 rows=6052.00 loops=1)
                     Hash Cond: (cs.commodity_type_id = ct.commodity_type_id)
                     Buffers: shared hit=19173
-                    ->  Hash Join  (cost=17.54..988.66 rows=6052 width=67) (actual time=0.103..5.396 rows=6052 loops=1)
+                    ->  Hash Join  (cost=17.54..988.66 rows=6052 width=67) (actual time=0.436..29.483 rows=6052.00 loops=1)
                           Hash Cond: (a.commodity_subtype_id = cs.commodity_subtype_id)
                           Buffers: shared hit=840
-                          ->  Hash Join  (cost=16.23..966.65 rows=6052 width=67) (actual time=0.093..4.473 rows=6052 loops=1)
+                          ->  Hash Join  (cost=16.23..966.65 rows=6052 width=67) (actual time=0.395..24.244 rows=6052.00 loops=1)
                                 Hash Cond: (cd.cause_category_id = cc.cause_category_id)
                                 Buffers: shared hit=839
-                                ->  Hash Join  (cost=15.04..941.17 rows=6052 width=47) (actual time=0.083..3.736 rows=6052 loops=1)
+                                ->  Hash Join  (cost=15.04..941.17 rows=6052 width=47) (actual time=0.358..19.457 rows=6052.00 loops=1)
                                       Hash Cond: (a.cause_detail_id = cd.cause_detail_id)
                                       Buffers: shared hit=838
-                                      ->  Hash Join  (cost=13.12..921.72 rows=6052 width=47) (actual time=0.070..3.009 rows=6052 loops=1)
+                                      ->  Hash Join  (cost=13.12..921.72 rows=6052 width=47) (actual time=0.314..13.177 rows=6052.00 loops=1)
                                             Hash Cond: (a.operator_id = o.operator_id)
                                             Buffers: shared hit=837
-                                            ->  Seq Scan on accident a  (cost=0.00..892.52 rows=6052 width=24) (actual time=0.001..0.583 rows=6052 loops=1)
+                                            ->  Seq Scan on accident a  (cost=0.00..892.52 rows=6052 width=24) (actual time=0.018..2.655 rows=6052.00 loops=1)
                                                   Buffers: shared hit=832
-                                            ->  Hash  (cost=8.61..8.61 rows=361 width=31) (actual time=0.063..0.063 rows=361 loops=1)
+                                            ->  Hash  (cost=8.61..8.61 rows=361 width=31) (actual time=0.290..0.291 rows=361.00 loops=1)
                                                   Buckets: 1024  Batches: 1  Memory Usage: 32kB
                                                   Buffers: shared hit=5
-                                                  ->  Seq Scan on operator o  (cost=0.00..8.61 rows=361 width=31) (actual time=0.003..0.025 rows=361 loops=1)
+                                                  ->  Seq Scan on operator o  (cost=0.00..8.61 rows=361 width=31) (actual time=0.020..0.124 rows=361.00 loops=1)
                                                         Buffers: shared hit=5
-                                      ->  Hash  (cost=1.41..1.41 rows=41 width=4) (actual time=0.009..0.010 rows=41 loops=1)
+                                      ->  Hash  (cost=1.41..1.41 rows=41 width=4) (actual time=0.040..0.041 rows=41.00 loops=1)
                                             Buckets: 1024  Batches: 1  Memory Usage: 10kB
                                             Buffers: shared hit=1
-                                            ->  Seq Scan on cause_detail cd  (cost=0.00..1.41 rows=41 width=4) (actual time=0.003..0.005 rows=41 loops=1)
+                                            ->  Seq Scan on cause_detail cd  (cost=0.00..1.41 rows=41 width=4) (actual time=0.015..0.025 rows=41.00 loops=1)
                                                   Buffers: shared hit=1
-                                ->  Hash  (cost=1.08..1.08 rows=8 width=24) (actual time=0.005..0.006 rows=8 loops=1)
+                                ->  Hash  (cost=1.08..1.08 rows=8 width=24) (actual time=0.030..0.030 rows=8.00 loops=1)
                                       Buckets: 1024  Batches: 1  Memory Usage: 9kB
                                       Buffers: shared hit=1
-                                      ->  Seq Scan on cause_category cc  (cost=0.00..1.08 rows=8 width=24) (actual time=0.002..0.003 rows=8 loops=1)
+                                      ->  Seq Scan on cause_category cc  (cost=0.00..1.08 rows=8 width=24) (actual time=0.023..0.025 rows=8.00 loops=1)
                                             Buffers: shared hit=1
-                          ->  Hash  (cost=1.14..1.14 rows=14 width=4) (actual time=0.006..0.007 rows=14 loops=1)
+                          ->  Hash  (cost=1.14..1.14 rows=14 width=4) (actual time=0.026..0.026 rows=14.00 loops=1)
                                 Buckets: 1024  Batches: 1  Memory Usage: 9kB
                                 Buffers: shared hit=1
-                                ->  Seq Scan on commodity_subtype cs  (cost=0.00..1.14 rows=14 width=4) (actual time=0.003..0.004 rows=14 loops=1)
+                                ->  Seq Scan on commodity_subtype cs  (cost=0.00..1.14 rows=14 width=4) (actual time=0.016..0.019 rows=14.00 loops=1)
                                       Buffers: shared hit=1
-                    ->  Hash  (cost=1.05..1.05 rows=5 width=2) (actual time=0.015..0.015 rows=5 loops=1)
+                    ->  Hash  (cost=1.05..1.05 rows=5 width=2) (actual time=0.033..0.033 rows=5.00 loops=1)
                           Buckets: 1024  Batches: 1  Memory Usage: 9kB
                           Buffers: shared hit=1
-                          ->  Seq Scan on commodity_type ct  (cost=0.00..1.05 rows=5 width=2) (actual time=0.010..0.011 rows=5 loops=1)
+                          ->  Seq Scan on commodity_type ct  (cost=0.00..1.05 rows=5 width=2) (actual time=0.023..0.024 rows=5.00 loops=1)
                                 Buffers: shared hit=1
                     SubPlan 1
-                      ->  Aggregate  (cost=17.16..17.17 rows=1 width=32) (actual time=0.002..0.002 rows=1 loops=6052)
+                      ->  Aggregate  (cost=17.16..17.17 rows=1 width=32) (actual time=0.011..0.011 rows=1.00 loops=6052)
                             Buffers: shared hit=18332
-                            ->  Index Scan using accident_cost_pkey on accident_cost c  (cost=0.29..17.14 rows=6 width=4) (actual time=0.001..0.001 rows=6 loops=6052)
+                            ->  Index Scan using accident_cost_pkey on accident_cost c  (cost=0.29..17.14 rows=6 width=4) (actual time=0.004..0.006 rows=5.99 loops=6052)
                                   Index Cond: (report_number = a.report_number)
+                                  Index Searches: 6052
                                   Buffers: shared hit=18332
         SubPlan 2
-          ->  Aggregate  (cost=1.33..1.34 rows=1 width=8) (actual time=0.002..0.002 rows=1 loops=10)
+          ->  Aggregate  (cost=1.33..1.34 rows=1 width=8) (actual time=0.018..0.018 rows=1.00 loops=10)
                 Buffers: shared hit=10
-                ->  Seq Scan on casualty x  (cost=0.00..1.32 rows=1 width=2) (actual time=0.001..0.001 rows=0 loops=10)
+                ->  Seq Scan on casualty x  (cost=0.00..1.32 rows=1 width=2) (actual time=0.011..0.011 rows=0.00 loops=10)
                       Filter: (report_number = a.report_number)
                       Rows Removed by Filter: 26
                       Buffers: shared hit=10
         SubPlan 3
-          ->  Aggregate  (cost=1.33..1.34 rows=1 width=8) (actual time=0.001..0.001 rows=1 loops=10)
+          ->  Aggregate  (cost=1.33..1.34 rows=1 width=8) (actual time=0.016..0.016 rows=1.00 loops=10)
                 Buffers: shared hit=10
-                ->  Seq Scan on casualty x_1  (cost=0.00..1.32 rows=1 width=2) (actual time=0.001..0.001 rows=0 loops=10)
+                ->  Seq Scan on casualty x_1  (cost=0.00..1.32 rows=1 width=2) (actual time=0.010..0.010 rows=0.00 loops=10)
                       Filter: (report_number = a.report_number)
                       Rows Removed by Filter: 26
                       Buffers: shared hit=10
 Planning:
   Buffers: shared hit=24
-Planning Time: 0.608 ms
-JIT:
-  Functions: 66
-  Options: Inlining false, Optimization false, Expressions true, Deforming true
-  Timing: Generation 1.003 ms, Inlining 0.000 ms, Optimization 0.598 ms, Emission 14.363 ms, Total 15.963 ms
-Execution Time: 37.783 ms
+Planning Time: 2.778 ms
+Execution Time: 121.482 ms

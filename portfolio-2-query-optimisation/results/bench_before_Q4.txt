@@ -5,19 +5,19 @@ FROM accident a
 WHERE a.operator_id = 31684
 ORDER BY a.accident_datetime DESC;
 
-Gather Merge  (cost=86015.77..88058.51 rows=17508 width=42) (actual time=86.314..92.863 rows=21500 loops=1)
+Gather Merge  (cost=86012.20..88423.29 rows=20702 width=42) (actual time=896.952..931.045 rows=21500.00 loops=1)
   Workers Planned: 2
   Workers Launched: 2
-  Buffers: shared hit=2032 read=79360
-  ->  Sort  (cost=85015.74..85037.63 rows=8754 width=42) (actual time=73.559..73.856 rows=7167 loops=3)
+  Buffers: shared hit=5714 read=75640
+  ->  Sort  (cost=85012.17..85033.74 rows=8626 width=42) (actual time=816.724..817.688 rows=7166.67 loops=3)
         Sort Key: accident_datetime DESC
-        Sort Method: quicksort  Memory: 1108kB
-        Buffers: shared hit=2032 read=79360
-        Worker 0:  Sort Method: quicksort  Memory: 557kB
-        Worker 1:  Sort Method: quicksort  Memory: 618kB
-        ->  Parallel Seq Scan on accident a  (cost=0.00..84442.54 rows=8754 width=42) (actual time=0.572..72.484 rows=7167 loops=3)
+        Sort Method: quicksort  Memory: 942kB
+        Buffers: shared hit=5714 read=75640
+        Worker 0:  Sort Method: quicksort  Memory: 621kB
+        Worker 1:  Sort Method: quicksort  Memory: 552kB
+        ->  Parallel Seq Scan on accident a  (cost=0.00..84448.27 rows=8626 width=42) (actual time=12.950..811.740 rows=7166.67 loops=3)
               Filter: (operator_id = 31684)
               Rows Removed by Filter: 194567
-              Buffers: shared hit=1920 read=79360
-Planning Time: 0.049 ms
-Execution Time: 93.577 ms
+              Buffers: shared hit=5640 read=75640
+Planning Time: 0.159 ms
+Execution Time: 934.510 ms

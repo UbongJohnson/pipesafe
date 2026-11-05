@@ -4,18 +4,19 @@ FROM accident a
 WHERE a.narrative ILIKE '%frozen%'
 ORDER BY a.accident_datetime DESC;
 
-Sort  (cost=18645.84..18660.39 rows=5818 width=48) (actual time=23.036..23.166 rows=3600 loops=1)
+Sort  (cost=352.33..352.47 rows=57 width=48) (actual time=254.535..254.828 rows=3600.00 loops=1)
   Sort Key: accident_datetime DESC
-  Sort Method: quicksort  Memory: 547kB
-  Buffers: shared hit=679
-  ->  Bitmap Heap Scan on accident a  (cost=156.59..18282.04 rows=5818 width=48) (actual time=0.933..22.673 rows=3600 loops=1)
+  Sort Method: quicksort  Memory: 518kB
+  Buffers: shared hit=678
+  ->  Bitmap Heap Scan on accident a  (cost=126.34..350.67 rows=57 width=48) (actual time=5.462..251.337 rows=3600.00 loops=1)
         Recheck Cond: (narrative ~~* '%frozen%'::text)
         Heap Blocks: exact=593
-        Buffers: shared hit=679
-        ->  Bitmap Index Scan on idx_accident_narrative_trgm  (cost=0.00..155.13 rows=5818 width=0) (actual time=0.876..0.876 rows=3600 loops=1)
+        Buffers: shared hit=678
+        ->  Bitmap Index Scan on idx_accident_narrative_trgm  (cost=0.00..126.33 rows=57 width=0) (actual time=5.257..5.258 rows=3600.00 loops=1)
               Index Cond: (narrative ~~* '%frozen%'::text)
-              Buffers: shared hit=86
+              Index Searches: 1
+              Buffers: shared hit=85
 Planning:
   Buffers: shared hit=1
-Planning Time: 0.877 ms
-Execution Time: 23.292 ms
+Planning Time: 4.547 ms
+Execution Time: 255.093 ms

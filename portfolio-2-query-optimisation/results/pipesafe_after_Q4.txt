@@ -5,16 +5,17 @@ FROM accident a
 WHERE a.operator_id = 31684
 ORDER BY a.accident_datetime DESC;
 
-Sort  (cost=506.42..506.96 rows=215 width=42) (actual time=0.107..0.115 rows=215 loops=1)
+Sort  (cost=506.42..506.96 rows=215 width=42) (actual time=0.668..0.685 rows=215.00 loops=1)
   Sort Key: accident_datetime DESC
-  Sort Method: quicksort  Memory: 40kB
+  Sort Method: quicksort  Memory: 38kB
   Buffers: shared hit=192
-  ->  Bitmap Heap Scan on accident a  (cost=5.95..498.09 rows=215 width=42) (actual time=0.015..0.081 rows=215 loops=1)
+  ->  Bitmap Heap Scan on accident a  (cost=5.95..498.09 rows=215 width=42) (actual time=0.111..0.510 rows=215.00 loops=1)
         Recheck Cond: (operator_id = 31684)
         Heap Blocks: exact=189
         Buffers: shared hit=192
-        ->  Bitmap Index Scan on idx_accident_operator_date  (cost=0.00..5.89 rows=215 width=0) (actual time=0.006..0.006 rows=215 loops=1)
+        ->  Bitmap Index Scan on idx_accident_operator_date  (cost=0.00..5.89 rows=215 width=0) (actual time=0.049..0.050 rows=215.00 loops=1)
               Index Cond: (operator_id = 31684)
+              Index Searches: 1
               Buffers: shared hit=3
-Planning Time: 0.017 ms
-Execution Time: 0.125 ms
+Planning Time: 0.314 ms
+Execution Time: 0.740 ms

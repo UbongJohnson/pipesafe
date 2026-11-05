@@ -1,0 +1,22 @@
+-- bench / before / Q6
+SELECT a.report_number, a.accident_datetime, LEFT(a.narrative, 80) AS narrative_start
+FROM accident a
+WHERE a.narrative ILIKE '%frozen%'
+ORDER BY a.accident_datetime DESC;
+
+Gather Merge  (cost=85448.90..85455.66 rows=58 width=48) (actual time=9818.671..9842.492 rows=3600.00 loops=1)
+  Workers Planned: 2
+  Workers Launched: 2
+  Buffers: shared hit=47481 read=70557
+  ->  Sort  (cost=84448.88..84448.94 rows=24 width=48) (actual time=9698.681..9698.813 rows=1200.00 loops=3)
+        Sort Key: accident_datetime DESC
+        Sort Method: quicksort  Memory: 92kB
+        Buffers: shared hit=47481 read=70557
+        Worker 0:  Sort Method: quicksort  Memory: 275kB
+        Worker 1:  Sort Method: quicksort  Memory: 176kB
+        ->  Parallel Seq Scan on accident a  (cost=0.00..84448.33 rows=24 width=48) (actual time=617.977..9697.088 rows=1200.00 loops=3)
+              Filter: (narrative ~~* '%frozen%'::text)
+              Rows Removed by Filter: 200533
+              Buffers: shared hit=47407 read=70557
+Planning Time: 4.645 ms
+Execution Time: 9842.852 ms

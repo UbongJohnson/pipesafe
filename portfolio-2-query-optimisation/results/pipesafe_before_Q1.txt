@@ -9,33 +9,33 @@ JOIN cause_category cc ON cc.cause_category_id = cd.cause_category_id
 GROUP BY 1, 2
 ORDER BY 1, 3 DESC;
 
-Sort  (cost=1529.43..1544.56 rows=6052 width=66) (actual time=4.119..4.126 rows=135 loops=1)
+Sort  (cost=1529.43..1544.56 rows=6052 width=66) (actual time=19.154..19.168 rows=135.00 loops=1)
   Sort Key: ((EXTRACT(year FROM a.accident_datetime))::integer), (count(*)) DESC
-  Sort Method: quicksort  Memory: 34kB
+  Sort Method: quicksort  Memory: 33kB
   Buffers: shared hit=834
-  ->  HashAggregate  (cost=1028.23..1149.27 rows=6052 width=66) (actual time=4.051..4.090 rows=135 loops=1)
+  ->  HashAggregate  (cost=1028.23..1149.27 rows=6052 width=66) (actual time=18.867..19.041 rows=135.00 loops=1)
         Group Key: (EXTRACT(year FROM a.accident_datetime))::integer, cc.category_name
-        Batches: 1  Memory Usage: 273kB
+        Batches: 1  Memory Usage: 225kB
         Buffers: shared hit=834
-        ->  Hash Join  (cost=3.10..967.71 rows=6052 width=31) (actual time=0.020..3.124 rows=6052 loops=1)
+        ->  Hash Join  (cost=3.10..967.71 rows=6052 width=31) (actual time=0.123..13.143 rows=6052.00 loops=1)
               Hash Cond: (cd.cause_category_id = cc.cause_category_id)
               Buffers: shared hit=834
-              ->  Hash Join  (cost=1.92..911.98 rows=6052 width=15) (actual time=0.010..1.946 rows=6052 loops=1)
+              ->  Hash Join  (cost=1.92..911.98 rows=6052 width=15) (actual time=0.067..7.291 rows=6052.00 loops=1)
                     Hash Cond: (a.cause_detail_id = cd.cause_detail_id)
                     Buffers: shared hit=833
-                    ->  Seq Scan on accident a  (cost=0.00..892.52 rows=6052 width=15) (actual time=0.001..0.530 rows=6052 loops=1)
+                    ->  Seq Scan on accident a  (cost=0.00..892.52 rows=6052 width=15) (actual time=0.012..1.366 rows=6052.00 loops=1)
                           Buffers: shared hit=832
-                    ->  Hash  (cost=1.41..1.41 rows=41 width=4) (actual time=0.007..0.007 rows=41 loops=1)
+                    ->  Hash  (cost=1.41..1.41 rows=41 width=4) (actual time=0.038..0.039 rows=41.00 loops=1)
                           Buckets: 1024  Batches: 1  Memory Usage: 10kB
                           Buffers: shared hit=1
-                          ->  Seq Scan on cause_detail cd  (cost=0.00..1.41 rows=41 width=4) (actual time=0.001..0.004 rows=41 loops=1)
+                          ->  Seq Scan on cause_detail cd  (cost=0.00..1.41 rows=41 width=4) (actual time=0.011..0.021 rows=41.00 loops=1)
                                 Buffers: shared hit=1
-              ->  Hash  (cost=1.08..1.08 rows=8 width=24) (actual time=0.006..0.007 rows=8 loops=1)
+              ->  Hash  (cost=1.08..1.08 rows=8 width=24) (actual time=0.038..0.038 rows=8.00 loops=1)
                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
                     Buffers: shared hit=1
-                    ->  Seq Scan on cause_category cc  (cost=0.00..1.08 rows=8 width=24) (actual time=0.003..0.004 rows=8 loops=1)
+                    ->  Seq Scan on cause_category cc  (cost=0.00..1.08 rows=8 width=24) (actual time=0.025..0.028 rows=8.00 loops=1)
                           Buffers: shared hit=1
 Planning:
   Buffers: shared hit=4
-Planning Time: 0.136 ms
-Execution Time: 4.160 ms
+Planning Time: 0.595 ms
+Execution Time: 19.531 ms

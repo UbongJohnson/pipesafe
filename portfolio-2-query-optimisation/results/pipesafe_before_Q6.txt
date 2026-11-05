@@ -4,13 +4,13 @@ FROM accident a
 WHERE a.narrative ILIKE '%frozen%'
 ORDER BY a.accident_datetime DESC;
 
-Sort  (cost=909.61..909.76 rows=61 width=48) (actual time=32.070..32.072 rows=36 loops=1)
+Sort  (cost=907.66..907.67 rows=1 width=48) (actual time=176.149..176.151 rows=36.00 loops=1)
   Sort Key: accident_datetime DESC
   Sort Method: quicksort  Memory: 29kB
   Buffers: shared hit=1080
-  ->  Seq Scan on accident a  (cost=0.00..907.80 rows=61 width=48) (actual time=0.132..32.058 rows=36 loops=1)
+  ->  Seq Scan on accident a  (cost=0.00..907.65 rows=1 width=48) (actual time=0.819..176.066 rows=36.00 loops=1)
         Filter: (narrative ~~* '%frozen%'::text)
         Rows Removed by Filter: 6016
         Buffers: shared hit=1080
-Planning Time: 0.473 ms
-Execution Time: 32.082 ms
+Planning Time: 2.339 ms
+Execution Time: 176.186 ms

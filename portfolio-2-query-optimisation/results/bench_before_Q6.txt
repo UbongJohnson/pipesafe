@@ -4,19 +4,19 @@ FROM accident a
 WHERE a.narrative ILIKE '%frozen%'
 ORDER BY a.accident_datetime DESC;
 
-Gather Merge  (cost=85585.16..86151.73 rows=4856 width=48) (actual time=1579.810..1583.646 rows=3600 loops=1)
+Gather Merge  (cost=85448.90..85455.66 rows=58 width=48) (actual time=9818.671..9842.492 rows=3600.00 loops=1)
   Workers Planned: 2
   Workers Launched: 2
-  Buffers: shared hit=40830 read=77248
-  ->  Sort  (cost=84585.13..84591.20 rows=2428 width=48) (actual time=1565.777..1565.827 rows=1200 loops=3)
+  Buffers: shared hit=47481 read=70557
+  ->  Sort  (cost=84448.88..84448.94 rows=24 width=48) (actual time=9698.681..9698.813 rows=1200.00 loops=3)
         Sort Key: accident_datetime DESC
-        Sort Method: quicksort  Memory: 146kB
-        Buffers: shared hit=40830 read=77248
-        Worker 0:  Sort Method: quicksort  Memory: 220kB
-        Worker 1:  Sort Method: quicksort  Memory: 206kB
-        ->  Parallel Seq Scan on accident a  (cost=0.00..84448.61 rows=2428 width=48) (actual time=304.414..1565.497 rows=1200 loops=3)
+        Sort Method: quicksort  Memory: 92kB
+        Buffers: shared hit=47481 read=70557
+        Worker 0:  Sort Method: quicksort  Memory: 275kB
+        Worker 1:  Sort Method: quicksort  Memory: 176kB
+        ->  Parallel Seq Scan on accident a  (cost=0.00..84448.33 rows=24 width=48) (actual time=617.977..9697.088 rows=1200.00 loops=3)
               Filter: (narrative ~~* '%frozen%'::text)
               Rows Removed by Filter: 200533
-              Buffers: shared hit=40718 read=77248
-Planning Time: 0.988 ms
-Execution Time: 1583.780 ms
+              Buffers: shared hit=47407 read=70557
+Planning Time: 4.645 ms
+Execution Time: 9842.852 ms

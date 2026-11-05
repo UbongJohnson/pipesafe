@@ -1,0 +1,28 @@
+Timing is on.
+SET
+Time: 2.059 ms
+--- A. With all six new indexes ---
+BEGIN
+Time: 0.159 ms
+INSERT 0 6052
+Time: 32471.073 ms (00:32.471)
+ROLLBACK
+Time: 2.955 ms
+--- B. Without the trigram (text search) index ---
+BEGIN
+Time: 0.244 ms
+DROP INDEX
+Time: 33.538 ms
+INSERT 0 6052
+Time: 1189.372 ms (00:01.189)
+ROLLBACK
+Time: 0.732 ms
+--- C. Without any of the six new indexes ---
+BEGIN
+Time: 0.137 ms
+DROP INDEX
+Time: 3.288 ms
+INSERT 0 6052
+Time: 739.481 ms
+ROLLBACK
+Time: 2.212 ms
