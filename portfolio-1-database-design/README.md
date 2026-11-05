@@ -8,6 +8,7 @@ This portfolio designs a normalised relational database for PipeSafe Analytics. 
 |---|---|
 | `case-study.md` | The organisation, its users, the data stored and the key operations |
 | `dataset-analysis.md` | Profile of the raw data: size, missing values, redundancy, data quality issues |
+| `normalisation.md` | Step-by-step normalisation from the flat file to 3NF, with real examples |
 | `schema.md` | Relational schema, relationships, constraints and design decisions |
 | `er-diagram.png` | ER diagram (crow's-foot notation) |
 | `er-diagram.dbml` | Source of the ER diagram; paste into [dbdiagram.io](https://dbdiagram.io) to edit |
