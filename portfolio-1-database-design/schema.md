@@ -163,7 +163,7 @@ Each decision is based on a check run against the real data.
 
 ## 7. Test Load Results
 
-The full dataset was loaded into PostgreSQL 16 with every constraint active, and all 6,052 reports were accepted. Totals calculated from the normalised tables match the raw file exactly:
+The full dataset was loaded into PostgreSQL 18 with every constraint active, and all 6,052 reports were accepted. Totals calculated from the normalised tables match the raw file exactly:
 
 | Measure | Raw file | Normalised database |
 |---|---|---|

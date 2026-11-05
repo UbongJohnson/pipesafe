@@ -1,0 +1,46 @@
+psql:sql/01_create_tables.sql:8: NOTICE:  drop cascades to 21 other objects
+DETAIL:  drop cascades to table pipesafe.operator
+drop cascades to table pipesafe.operator_name_history
+drop cascades to table pipesafe.facility
+drop cascades to table pipesafe.state
+drop cascades to table pipesafe.county
+drop cascades to table pipesafe.commodity_type
+drop cascades to table pipesafe.commodity_subtype
+drop cascades to table pipesafe.cause_category
+drop cascades to table pipesafe.cause_detail
+drop cascades to table pipesafe.system_part
+drop cascades to table pipesafe.item_involved
+drop cascades to table pipesafe.detection_method
+drop cascades to table pipesafe.cost_type
+drop cascades to table pipesafe.accident
+drop cascades to table pipesafe.offshore_location
+drop cascades to table pipesafe.casualty
+drop cascades to table pipesafe.accident_cost
+drop cascades to table pipesafe.corrosion_detail
+drop cascades to table pipesafe.excavation_detail
+drop cascades to table pipesafe.incorrect_operation_detail
+drop cascades to view pipesafe.v_accident_summary
+DROP SCHEMA
+CREATE SCHEMA
+SET
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE VIEW

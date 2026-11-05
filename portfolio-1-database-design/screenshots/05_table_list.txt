@@ -1,0 +1,24 @@
+                                                  List of tables
+  Schema  |            Name            | Type  |  Owner   | Persistence | Access method |    Size    | Description 
+----------+----------------------------+-------+----------+-------------+---------------+------------+-------------
+ pipesafe | accident                   | table | postgres | permanent   | heap          | 7008 kB    | 
+ pipesafe | accident_cost              | table | postgres | permanent   | heap          | 1816 kB    | 
+ pipesafe | casualty                   | table | postgres | permanent   | heap          | 8192 bytes | 
+ pipesafe | cause_category             | table | postgres | permanent   | heap          | 8192 bytes | 
+ pipesafe | cause_detail               | table | postgres | permanent   | heap          | 8192 bytes | 
+ pipesafe | commodity_subtype          | table | postgres | permanent   | heap          | 8192 bytes | 
+ pipesafe | commodity_type             | table | postgres | permanent   | heap          | 8192 bytes | 
+ pipesafe | corrosion_detail           | table | postgres | permanent   | heap          | 136 kB     | 
+ pipesafe | cost_type                  | table | postgres | permanent   | heap          | 8192 bytes | 
+ pipesafe | county                     | table | postgres | permanent   | heap          | 72 kB      | 
+ pipesafe | detection_method           | table | postgres | permanent   | heap          | 8192 bytes | 
+ pipesafe | excavation_detail          | table | postgres | permanent   | heap          | 48 kB      | 
+ pipesafe | facility                   | table | postgres | permanent   | heap          | 280 kB     | 
+ pipesafe | incorrect_operation_detail | table | postgres | permanent   | heap          | 80 kB      | 
+ pipesafe | item_involved              | table | postgres | permanent   | heap          | 8192 bytes | 
+ pipesafe | offshore_location          | table | postgres | permanent   | heap          | 8192 bytes | 
+ pipesafe | operator                   | table | postgres | permanent   | heap          | 64 kB      | 
+ pipesafe | operator_name_history      | table | postgres | permanent   | heap          | 56 kB      | 
+ pipesafe | state                      | table | postgres | permanent   | heap          | 8192 bytes | 
+ pipesafe | system_part                | table | postgres | permanent   | heap          | 8192 bytes | 
+(20 rows)

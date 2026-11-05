@@ -1,0 +1,57 @@
+SET
+         table_name         | count 
+----------------------------+-------
+ operator                   |   361
+ operator_name_history      |   416
+ facility                   |  4015
+ state                      |    52
+ county                     |   977
+ commodity_type             |     5
+ commodity_subtype          |    14
+ cause_category             |     8
+ cause_detail               |    41
+ system_part                |     7
+ item_involved              |    19
+ detection_method           |    12
+ cost_type                  |     6
+ accident                   |  6052
+ offshore_location          |    63
+ casualty                   |    26
+ accident_cost              | 36261
+ corrosion_detail           |  1328
+ excavation_detail          |   199
+ incorrect_operation_detail |   834
+(20 rows)
+
+ accidents | bbl_released | bbl_recovered | total_cost_usd | fatalities | injuries 
+-----------+--------------+---------------+----------------+------------+----------
+      6052 |      1388888 |        552028 |  4619299360.00 |         16 |       46
+(1 row)
+
+          cause_category          | accidents 
+----------------------------------+-----------
+ EQUIPMENT FAILURE                |      2759
+ CORROSION FAILURE                |      1328
+ INCORRECT OPERATION              |       834
+ MATERIAL FAILURE OF PIPE OR WELD |       406
+ NATURAL FORCE DAMAGE             |       264
+ EXCAVATION DAMAGE                |       199
+ OTHER ACCIDENT CAUSE             |       134
+ OTHER OUTSIDE FORCE DAMAGE       |       128
+(8 rows)
+
+    detail_table     | wrong_cause 
+---------------------+-------------
+ excavation          |           0
+ incorrect_operation |           0
+ corrosion           |           0
+(3 rows)
+
+ operator_id |          current_name           |                               all_names                               
+-------------+---------------------------------+-----------------------------------------------------------------------
+         473 | WESTERN MIDSTREAM PARTNERS, LP  | ANADARKO PETROLEUM CORP | WESTERN MIDSTREAM PARTNERS, LP
+        1541 | HILCORP NORTH SLOPE, LLC        | BP PIPELINES (ALASKA), INC | HILCORP NORTH SLOPE, LLC
+        2162 | DOW PIPELINE LLC - CAYUSE       | DOW PIPELINE CO - CAYUSE | DOW PIPELINE LLC - CAYUSE
+        3445 | DIXIE PIPELINE COMPANY LLC      | DIXIE PIPELINE | DIXIE PIPELINE COMPANY LLC
+        4472 | CYPRESS INTERSTATE PIPELINE LLC | KINDER MORGAN ENERGY PARTNERS, L.P. | CYPRESS INTERSTATE PIPELINE LLC
+(5 rows)
