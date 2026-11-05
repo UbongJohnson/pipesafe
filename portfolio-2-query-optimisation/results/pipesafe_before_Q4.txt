@@ -1,0 +1,17 @@
+-- pipesafe / before / Q4
+SELECT a.report_number, a.accident_datetime, a.report_type,
+       a.unintentional_release_bbls, a.recovered_bbls
+FROM accident a
+WHERE a.operator_id = 31684
+ORDER BY a.accident_datetime DESC;
+
+Sort  (cost=915.98..916.52 rows=215 width=42) (actual time=0.702..0.710 rows=215 loops=1)
+  Sort Key: accident_datetime DESC
+  Sort Method: quicksort  Memory: 40kB
+  Buffers: shared hit=832
+  ->  Seq Scan on accident a  (cost=0.00..907.65 rows=215 width=42) (actual time=0.003..0.670 rows=215 loops=1)
+        Filter: (operator_id = 31684)
+        Rows Removed by Filter: 5837
+        Buffers: shared hit=832
+Planning Time: 0.023 ms
+Execution Time: 0.723 ms

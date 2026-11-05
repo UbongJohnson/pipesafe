@@ -1,0 +1,43 @@
+-- pipesafe / after / Q5
+SELECT ct.type_name                                         AS commodity_type,
+       COUNT(*)                                             AS accidents,
+       ROUND(SUM(a.unintentional_release_bbls))             AS bbl_released,
+       ROUND(SUM(a.recovered_bbls))                         AS bbl_recovered,
+       ROUND(100.0 * SUM(a.recovered_bbls)
+             / NULLIF(SUM(a.unintentional_release_bbls), 0), 1) AS recovery_pct
+FROM accident a
+JOIN commodity_subtype cs ON cs.commodity_subtype_id = a.commodity_subtype_id
+JOIN commodity_type    ct ON ct.commodity_type_id    = cs.commodity_type_id
+GROUP BY ct.type_name
+ORDER BY bbl_released DESC;
+
+Sort  (cost=1005.72..1005.73 rows=5 width=152) (actual time=3.629..3.632 rows=5 loops=1)
+  Sort Key: (round(sum(a.unintentional_release_bbls), 0)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=834
+  ->  HashAggregate  (cost=1005.51..1005.66 rows=5 width=152) (actual time=3.619..3.625 rows=5 loops=1)
+        Group Key: ct.type_name
+        Batches: 1  Memory Usage: 24kB
+        Buffers: shared hit=834
+        ->  Hash Join  (cost=2.43..944.99 rows=6052 width=57) (actual time=0.014..2.650 rows=6052 loops=1)
+              Hash Cond: (cs.commodity_type_id = ct.commodity_type_id)
+              Buffers: shared hit=834
+              ->  Hash Join  (cost=1.32..914.53 rows=6052 width=11) (actual time=0.007..1.994 rows=6052 loops=1)
+                    Hash Cond: (a.commodity_subtype_id = cs.commodity_subtype_id)
+                    Buffers: shared hit=833
+                    ->  Seq Scan on accident a  (cost=0.00..892.52 rows=6052 width=11) (actual time=0.001..0.564 rows=6052 loops=1)
+                          Buffers: shared hit=832
+                    ->  Hash  (cost=1.14..1.14 rows=14 width=4) (actual time=0.003..0.004 rows=14 loops=1)
+                          Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                          Buffers: shared hit=1
+                          ->  Seq Scan on commodity_subtype cs  (cost=0.00..1.14 rows=14 width=4) (actual time=0.001..0.001 rows=14 loops=1)
+                                Buffers: shared hit=1
+              ->  Hash  (cost=1.05..1.05 rows=5 width=50) (actual time=0.005..0.006 rows=5 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=1
+                    ->  Seq Scan on commodity_type ct  (cost=0.00..1.05 rows=5 width=50) (actual time=0.003..0.003 rows=5 loops=1)
+                          Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=16
+Planning Time: 0.162 ms
+Execution Time: 3.660 ms

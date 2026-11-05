@@ -1,0 +1,58 @@
+-- bench / before / Q5
+SELECT ct.type_name                                         AS commodity_type,
+       COUNT(*)                                             AS accidents,
+       ROUND(SUM(a.unintentional_release_bbls))             AS bbl_released,
+       ROUND(SUM(a.recovered_bbls))                         AS bbl_recovered,
+       ROUND(100.0 * SUM(a.recovered_bbls)
+             / NULLIF(SUM(a.unintentional_release_bbls), 0), 1) AS recovery_pct
+FROM accident a
+JOIN commodity_subtype cs ON cs.commodity_subtype_id = a.commodity_subtype_id
+JOIN commodity_type    ct ON ct.commodity_type_id    = cs.commodity_type_id
+GROUP BY ct.type_name
+ORDER BY bbl_released DESC;
+
+Sort  (cost=89436.43..89436.44 rows=5 width=152) (actual time=221.850..224.253 rows=5 loops=1)
+  Sort Key: (round(sum(a.unintentional_release_bbls), 0)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=3026 read=78304
+  ->  Finalize GroupAggregate  (cost=89434.90..89436.37 rows=5 width=152) (actual time=221.819..224.247 rows=5 loops=1)
+        Group Key: ct.type_name
+        Buffers: shared hit=3026 read=78304
+        ->  Gather Merge  (cost=89434.90..89436.07 rows=10 width=120) (actual time=221.804..224.211 rows=15 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=3026 read=78304
+              ->  Sort  (cost=88434.88..88434.89 rows=5 width=120) (actual time=208.152..208.155 rows=5 loops=3)
+                    Sort Key: ct.type_name
+                    Sort Method: quicksort  Memory: 26kB
+                    Buffers: shared hit=3026 read=78304
+                    Worker 0:  Sort Method: quicksort  Memory: 26kB
+                    Worker 1:  Sort Method: quicksort  Memory: 26kB
+                    ->  Partial HashAggregate  (cost=88434.74..88434.82 rows=5 width=120) (actual time=208.133..208.137 rows=5 loops=3)
+                          Group Key: ct.type_name
+                          Batches: 1  Memory Usage: 24kB
+                          Buffers: shared hit=3010 read=78304
+                          Worker 0:  Batches: 1  Memory Usage: 24kB
+                          Worker 1:  Batches: 1  Memory Usage: 24kB
+                          ->  Hash Join  (cost=2.43..85904.71 rows=253003 width=57) (actual time=0.048..160.534 rows=201733 loops=3)
+                                Hash Cond: (cs.commodity_type_id = ct.commodity_type_id)
+                                Buffers: shared hit=3010 read=78304
+                                ->  Hash Join  (cost=1.32..84676.53 rows=253003 width=11) (actual time=0.025..125.781 rows=201733 loops=3)
+                                      Hash Cond: (a.commodity_subtype_id = cs.commodity_subtype_id)
+                                      Buffers: shared hit=2979 read=78304
+                                      ->  Parallel Seq Scan on accident a  (cost=0.00..83810.03 rows=253003 width=11) (actual time=0.010..78.812 rows=201733 loops=3)
+                                            Buffers: shared hit=2976 read=78304
+                                      ->  Hash  (cost=1.14..1.14 rows=14 width=4) (actual time=0.006..0.007 rows=14 loops=3)
+                                            Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                            Buffers: shared hit=3
+                                            ->  Seq Scan on commodity_subtype cs  (cost=0.00..1.14 rows=14 width=4) (actual time=0.002..0.003 rows=14 loops=3)
+                                                  Buffers: shared hit=3
+                                ->  Hash  (cost=1.05..1.05 rows=5 width=50) (actual time=0.008..0.009 rows=5 loops=3)
+                                      Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                      Buffers: shared hit=3
+                                      ->  Seq Scan on commodity_type ct  (cost=0.00..1.05 rows=5 width=50) (actual time=0.004..0.005 rows=5 loops=3)
+                                            Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=8
+Planning Time: 0.204 ms
+Execution Time: 224.294 ms

@@ -1,0 +1,46 @@
+-- pipesafe / before / Q2
+SELECT o.operator_id, o.operator_name,
+       COUNT(DISTINCT a.report_number) AS accidents,
+       SUM(c.amount_usd)               AS total_cost_usd
+FROM accident_cost c
+JOIN accident a ON a.report_number = c.report_number
+JOIN operator o ON o.operator_id   = a.operator_id
+GROUP BY o.operator_id, o.operator_name
+ORDER BY total_cost_usd DESC
+LIMIT 10;
+
+Limit  (cost=4857.44..4857.47 rows=10 width=71) (actual time=28.880..28.885 rows=10 loops=1)
+  Buffers: shared hit=1038
+  ->  Sort  (cost=4857.44..4858.35 rows=361 width=71) (actual time=28.879..28.882 rows=10 loops=1)
+        Sort Key: (sum(c.amount_usd)) DESC
+        Sort Method: top-N heapsort  Memory: 26kB
+        Buffers: shared hit=1038
+        ->  GroupAggregate  (cost=4482.52..4849.64 rows=361 width=71) (actual time=23.331..28.815 rows=361 loops=1)
+              Group Key: o.operator_id
+              Buffers: shared hit=1038
+              ->  Sort  (cost=4482.52..4573.17 rows=36261 width=43) (actual time=23.063..24.892 rows=36261 loops=1)
+                    Sort Key: o.operator_id, a.report_number
+                    Sort Method: quicksort  Memory: 3669kB
+                    Buffers: shared hit=1038
+                    ->  Hash Join  (cost=981.29..1736.45 rows=36261 width=43) (actual time=1.429..11.748 rows=36261 loops=1)
+                          Hash Cond: (a.operator_id = o.operator_id)
+                          Buffers: shared hit=1038
+                          ->  Hash Join  (cost=968.17..1627.03 rows=36261 width=16) (actual time=1.373..7.736 rows=36261 loops=1)
+                                Hash Cond: (c.report_number = a.report_number)
+                                Buffers: shared hit=1033
+                                ->  Seq Scan on accident_cost c  (cost=0.00..563.61 rows=36261 width=12) (actual time=0.001..1.690 rows=36261 loops=1)
+                                      Buffers: shared hit=201
+                                ->  Hash  (cost=892.52..892.52 rows=6052 width=12) (actual time=1.365..1.366 rows=6052 loops=1)
+                                      Buckets: 8192  Batches: 1  Memory Usage: 325kB
+                                      Buffers: shared hit=832
+                                      ->  Seq Scan on accident a  (cost=0.00..892.52 rows=6052 width=12) (actual time=0.001..0.922 rows=6052 loops=1)
+                                            Buffers: shared hit=832
+                          ->  Hash  (cost=8.61..8.61 rows=361 width=31) (actual time=0.054..0.054 rows=361 loops=1)
+                                Buckets: 1024  Batches: 1  Memory Usage: 31kB
+                                Buffers: shared hit=5
+                                ->  Seq Scan on operator o  (cost=0.00..8.61 rows=361 width=31) (actual time=0.003..0.024 rows=361 loops=1)
+                                      Buffers: shared hit=5
+Planning:
+  Buffers: shared hit=19
+Planning Time: 0.175 ms
+Execution Time: 28.907 ms

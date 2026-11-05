@@ -1,0 +1,20 @@
+-- bench / after / Q4
+SELECT a.report_number, a.accident_datetime, a.report_type,
+       a.unintentional_release_bbls, a.recovered_bbls
+FROM accident a
+WHERE a.operator_id = 31684
+ORDER BY a.accident_datetime DESC;
+
+Sort  (cost=50495.75..50549.52 rows=21507 width=42) (actual time=6.686..7.455 rows=21500 loops=1)
+  Sort Key: accident_datetime DESC
+  Sort Method: quicksort  Memory: 2283kB
+  Buffers: shared hit=3081
+  ->  Bitmap Heap Scan on accident a  (cost=247.10..48948.05 rows=21507 width=42) (actual time=0.678..4.408 rows=21500 loops=1)
+        Recheck Cond: (operator_id = 31684)
+        Heap Blocks: exact=3059
+        Buffers: shared hit=3081
+        ->  Bitmap Index Scan on idx_accident_operator_date  (cost=0.00..241.73 rows=21507 width=0) (actual time=0.395..0.395 rows=21500 loops=1)
+              Index Cond: (operator_id = 31684)
+              Buffers: shared hit=22
+Planning Time: 0.050 ms
+Execution Time: 8.139 ms

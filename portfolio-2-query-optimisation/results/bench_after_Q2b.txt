@@ -1,0 +1,49 @@
+-- bench / after / Q2b
+SELECT o.operator_id, o.operator_name,
+       COUNT(*)              AS accidents,
+       SUM(m.total_cost_usd) AS total_cost_usd
+FROM mv_accident_totals m
+JOIN operator o ON o.operator_id = m.operator_id
+GROUP BY o.operator_id, o.operator_name
+ORDER BY total_cost_usd DESC
+LIMIT 10;
+
+Limit  (cost=11278.40..11278.43 rows=10 width=71) (actual time=100.047..101.598 rows=10 loops=1)
+  Buffers: shared hit=908 read=4192
+  ->  Sort  (cost=11278.40..11279.30 rows=361 width=71) (actual time=100.046..101.596 rows=10 loops=1)
+        Sort Key: (sum(m.total_cost_usd)) DESC
+        Sort Method: top-N heapsort  Memory: 26kB
+        Buffers: shared hit=908 read=4192
+        ->  Finalize GroupAggregate  (cost=11174.63..11270.60 rows=361 width=71) (actual time=99.566..101.510 rows=361 loops=1)
+              Group Key: o.operator_id
+              Buffers: shared hit=908 read=4192
+              ->  Gather Merge  (cost=11174.63..11258.87 rows=722 width=71) (actual time=99.552..101.227 rows=798 loops=1)
+                    Workers Planned: 2
+                    Workers Launched: 2
+                    Buffers: shared hit=908 read=4192
+                    ->  Sort  (cost=10174.60..10175.51 rows=361 width=71) (actual time=84.963..84.981 rows=266 loops=3)
+                          Sort Key: o.operator_id
+                          Sort Method: quicksort  Memory: 70kB
+                          Buffers: shared hit=908 read=4192
+                          Worker 0:  Sort Method: quicksort  Memory: 57kB
+                          Worker 1:  Sort Method: quicksort  Memory: 55kB
+                          ->  Partial HashAggregate  (cost=10154.76..10159.27 rows=361 width=71) (actual time=84.850..84.908 rows=266 loops=3)
+                                Group Key: o.operator_id
+                                Batches: 1  Memory Usage: 285kB
+                                Buffers: shared hit=894 read=4192
+                                Worker 0:  Batches: 1  Memory Usage: 157kB
+                                Worker 1:  Batches: 1  Memory Usage: 157kB
+                                ->  Hash Join  (cost=16.12..8263.50 rows=252167 width=37) (actual time=0.095..54.748 rows=201733 loops=3)
+                                      Hash Cond: (m.operator_id = o.operator_id)
+                                      Buffers: shared hit=894 read=4192
+                                      ->  Parallel Seq Scan on mv_accident_totals m  (cost=0.00..7577.67 rows=252167 width=10) (actual time=0.012..15.344 rows=201733 loops=3)
+                                            Buffers: shared hit=864 read=4192
+                                      ->  Hash  (cost=11.61..11.61 rows=361 width=31) (actual time=0.069..0.069 rows=361 loops=3)
+                                            Buckets: 1024  Batches: 1  Memory Usage: 31kB
+                                            Buffers: shared hit=24
+                                            ->  Seq Scan on operator o  (cost=0.00..11.61 rows=361 width=31) (actual time=0.005..0.034 rows=361 loops=3)
+                                                  Buffers: shared hit=24
+Planning:
+  Buffers: shared hit=7
+Planning Time: 0.118 ms
+Execution Time: 101.633 ms

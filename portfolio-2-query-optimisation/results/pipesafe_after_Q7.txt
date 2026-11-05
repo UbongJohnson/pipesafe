@@ -1,0 +1,63 @@
+-- pipesafe / after / Q7
+SELECT s.state_code, COUNT(*) AS accidents
+FROM corrosion_detail d
+JOIN accident       a  ON a.report_number   = d.report_number
+JOIN cause_detail   cd ON cd.cause_detail_id = a.cause_detail_id
+JOIN county         co ON co.county_id       = a.county_id
+JOIN state          s  ON s.state_code       = co.state_code
+WHERE cd.detail_name = 'EXTERNAL CORROSION'
+  AND d.under_cathodic_protection = FALSE
+GROUP BY s.state_code
+ORDER BY accidents DESC;
+
+Sort  (cost=427.82..427.88 rows=25 width=11) (actual time=0.431..0.433 rows=8 loops=1)
+  Sort Key: (count(*)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=428
+  ->  GroupAggregate  (cost=426.80..427.24 rows=25 width=11) (actual time=0.424..0.429 rows=8 loops=1)
+        Group Key: s.state_code
+        Buffers: shared hit=428
+        ->  Sort  (cost=426.80..426.86 rows=25 width=3) (actual time=0.421..0.424 rows=20 loops=1)
+              Sort Key: s.state_code
+              Sort Method: quicksort  Memory: 25kB
+              Buffers: shared hit=428
+              ->  Hash Join  (cost=393.61..426.22 rows=25 width=3) (actual time=0.351..0.416 rows=20 loops=1)
+                    Hash Cond: (co.state_code = s.state_code)
+                    Buffers: shared hit=428
+                    ->  Nested Loop  (cost=391.44..423.99 rows=25 width=3) (actual time=0.338..0.400 rows=20 loops=1)
+                          Buffers: shared hit=427
+                          ->  Hash Join  (cost=391.17..416.49 rows=25 width=4) (actual time=0.335..0.382 rows=20 loops=1)
+                                Hash Cond: (d.report_number = a.report_number)
+                                Buffers: shared hit=367
+                                ->  Seq Scan on corrosion_detail d  (cost=0.00..21.28 rows=1012 width=8) (actual time=0.003..0.045 rows=20 loops=1)
+                                      Filter: (NOT under_cathodic_protection)
+                                      Rows Removed by Filter: 1308
+                                      Buffers: shared hit=8
+                                ->  Hash  (cost=389.32..389.32 rows=148 width=12) (actual time=0.330..0.331 rows=475 loops=1)
+                                      Buckets: 1024  Batches: 1  Memory Usage: 29kB
+                                      Buffers: shared hit=359
+                                      ->  Nested Loop  (cost=5.43..389.32 rows=148 width=12) (actual time=0.049..0.296 rows=475 loops=1)
+                                            Buffers: shared hit=359
+                                            ->  Seq Scan on cause_detail cd  (cost=0.00..1.51 rows=1 width=2) (actual time=0.002..0.003 rows=1 loops=1)
+                                                  Filter: ((detail_name)::text = 'EXTERNAL CORROSION'::text)
+                                                  Rows Removed by Filter: 40
+                                                  Buffers: shared hit=1
+                                            ->  Bitmap Heap Scan on accident a  (cost=5.43..386.32 rows=148 width=14) (actual time=0.046..0.244 rows=475 loops=1)
+                                                  Recheck Cond: (cause_detail_id = cd.cause_detail_id)
+                                                  Heap Blocks: exact=356
+                                                  Buffers: shared hit=358
+                                                  ->  Bitmap Index Scan on idx_accident_cause_detail  (cost=0.00..5.39 rows=148 width=0) (actual time=0.020..0.020 rows=475 loops=1)
+                                                        Index Cond: (cause_detail_id = cd.cause_detail_id)
+                                                        Buffers: shared hit=2
+                          ->  Index Scan using county_pkey on county co  (cost=0.28..0.30 rows=1 width=7) (actual time=0.001..0.001 rows=1 loops=20)
+                                Index Cond: (county_id = a.county_id)
+                                Buffers: shared hit=60
+                    ->  Hash  (cost=1.52..1.52 rows=52 width=3) (actual time=0.010..0.010 rows=52 loops=1)
+                          Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                          Buffers: shared hit=1
+                          ->  Seq Scan on state s  (cost=0.00..1.52 rows=52 width=3) (actual time=0.002..0.005 rows=52 loops=1)
+                                Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=34
+Planning Time: 0.312 ms
+Execution Time: 0.461 ms

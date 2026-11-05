@@ -1,0 +1,34 @@
+-- pipesafe / after / Q2b
+SELECT o.operator_id, o.operator_name,
+       COUNT(*)              AS accidents,
+       SUM(m.total_cost_usd) AS total_cost_usd
+FROM mv_accident_totals m
+JOIN operator o ON o.operator_id = m.operator_id
+GROUP BY o.operator_id, o.operator_name
+ORDER BY total_cost_usd DESC
+LIMIT 10;
+
+Limit  (cost=211.42..211.45 rows=10 width=71) (actual time=2.153..2.156 rows=10 loops=1)
+  Buffers: shared hit=69
+  ->  Sort  (cost=211.42..212.32 rows=361 width=71) (actual time=2.153..2.154 rows=10 loops=1)
+        Sort Key: (sum(m.total_cost_usd)) DESC
+        Sort Method: top-N heapsort  Memory: 26kB
+        Buffers: shared hit=69
+        ->  HashAggregate  (cost=199.11..203.62 rows=361 width=71) (actual time=2.041..2.098 rows=361 loops=1)
+              Group Key: o.operator_id
+              Batches: 1  Memory Usage: 285kB
+              Buffers: shared hit=69
+              ->  Hash Join  (cost=13.12..153.72 rows=6052 width=37) (actual time=0.057..1.205 rows=6052 loops=1)
+                    Hash Cond: (m.operator_id = o.operator_id)
+                    Buffers: shared hit=69
+                    ->  Seq Scan on mv_accident_totals m  (cost=0.00..124.52 rows=6052 width=10) (actual time=0.003..0.335 rows=6052 loops=1)
+                          Buffers: shared hit=64
+                    ->  Hash  (cost=8.61..8.61 rows=361 width=31) (actual time=0.052..0.052 rows=361 loops=1)
+                          Buckets: 1024  Batches: 1  Memory Usage: 31kB
+                          Buffers: shared hit=5
+                          ->  Seq Scan on operator o  (cost=0.00..8.61 rows=361 width=31) (actual time=0.001..0.023 rows=361 loops=1)
+                                Buffers: shared hit=5
+Planning:
+  Buffers: shared hit=7
+Planning Time: 0.101 ms
+Execution Time: 2.175 ms

@@ -1,0 +1,61 @@
+-- bench / before / Q1
+SELECT EXTRACT(YEAR FROM a.accident_datetime)::INT AS accident_year,
+       cc.category_name                          AS cause_category,
+       COUNT(*)                                  AS accidents,
+       ROUND(SUM(a.unintentional_release_bbls))  AS bbl_released
+FROM accident a
+JOIN cause_detail   cd ON cd.cause_detail_id   = a.cause_detail_id
+JOIN cause_category cc ON cc.cause_category_id = cd.cause_category_id
+GROUP BY 1, 2
+ORDER BY 1, 3 DESC;
+
+Incremental Sort  (cost=119101.91..133569.79 rows=46928 width=66) (actual time=290.571..292.579 rows=135 loops=1)
+  Sort Key: ((EXTRACT(year FROM a.accident_datetime))::integer), (count(*)) DESC
+  Presorted Key: ((EXTRACT(year FROM a.accident_datetime))::integer)
+  Full-sort Groups: 4  Sort Method: quicksort  Average Memory: 27kB  Peak Memory: 27kB
+  Buffers: shared hit=7386 read=73952
+  ->  Finalize GroupAggregate  (cost=119099.56..132161.95 rows=46928 width=66) (actual time=290.514..292.542 rows=135 loops=1)
+        Group Key: ((EXTRACT(year FROM a.accident_datetime))::integer), cc.category_name
+        Buffers: shared hit=7386 read=73952
+        ->  Gather Merge  (cost=119099.56..130050.19 rows=93856 width=66) (actual time=290.499..292.401 rows=392 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=7386 read=73952
+              ->  Sort  (cost=118099.54..118216.86 rows=46928 width=66) (actual time=273.401..273.409 rows=131 loops=3)
+                    Sort Key: ((EXTRACT(year FROM a.accident_datetime))::integer), cc.category_name
+                    Sort Method: quicksort  Memory: 42kB
+                    Buffers: shared hit=7386 read=73952
+                    Worker 0:  Sort Method: quicksort  Memory: 41kB
+                    Worker 1:  Sort Method: quicksort  Memory: 41kB
+                    ->  Partial HashAggregate  (cost=108253.09..112533.35 rows=46928 width=66) (actual time=273.225..273.348 rows=131 loops=3)
+                          Group Key: (EXTRACT(year FROM a.accident_datetime))::integer, cc.category_name
+                          Planned Partitions: 4  Batches: 1  Memory Usage: 849kB
+                          Buffers: shared hit=7356 read=73952
+                          Worker 0:  Batches: 1  Memory Usage: 849kB
+                          Worker 1:  Batches: 1  Memory Usage: 849kB
+                          ->  Hash Join  (cost=3.10..86826.90 rows=253003 width=31) (actual time=23.716..226.875 rows=201733 loops=3)
+                                Hash Cond: (cd.cause_category_id = cc.cause_category_id)
+                                Buffers: shared hit=7356 read=73952
+                                ->  Hash Join  (cost=1.92..84544.74 rows=253003 width=15) (actual time=0.050..142.836 rows=201733 loops=3)
+                                      Hash Cond: (a.cause_detail_id = cd.cause_detail_id)
+                                      Buffers: shared hit=7331 read=73952
+                                      ->  Parallel Seq Scan on accident a  (cost=0.00..83810.03 rows=253003 width=15) (actual time=0.024..66.567 rows=201733 loops=3)
+                                            Buffers: shared hit=7328 read=73952
+                                      ->  Hash  (cost=1.41..1.41 rows=41 width=4) (actual time=0.017..0.018 rows=41 loops=3)
+                                            Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                                            Buffers: shared hit=3
+                                            ->  Seq Scan on cause_detail cd  (cost=0.00..1.41 rows=41 width=4) (actual time=0.009..0.012 rows=41 loops=3)
+                                                  Buffers: shared hit=3
+                                ->  Hash  (cost=1.08..1.08 rows=8 width=24) (actual time=23.645..23.646 rows=8 loops=3)
+                                      Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                      Buffers: shared hit=3
+                                      ->  Seq Scan on cause_category cc  (cost=0.00..1.08 rows=8 width=24) (actual time=23.630..23.633 rows=8 loops=3)
+                                            Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=8
+Planning Time: 0.162 ms
+JIT:
+  Functions: 72
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 2.811 ms, Inlining 0.000 ms, Optimization 6.351 ms, Emission 64.583 ms, Total 73.745 ms
+Execution Time: 293.586 ms

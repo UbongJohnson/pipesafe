@@ -1,0 +1,41 @@
+-- pipesafe / before / Q1
+SELECT EXTRACT(YEAR FROM a.accident_datetime)::INT AS accident_year,
+       cc.category_name                          AS cause_category,
+       COUNT(*)                                  AS accidents,
+       ROUND(SUM(a.unintentional_release_bbls))  AS bbl_released
+FROM accident a
+JOIN cause_detail   cd ON cd.cause_detail_id   = a.cause_detail_id
+JOIN cause_category cc ON cc.cause_category_id = cd.cause_category_id
+GROUP BY 1, 2
+ORDER BY 1, 3 DESC;
+
+Sort  (cost=1529.43..1544.56 rows=6052 width=66) (actual time=4.119..4.126 rows=135 loops=1)
+  Sort Key: ((EXTRACT(year FROM a.accident_datetime))::integer), (count(*)) DESC
+  Sort Method: quicksort  Memory: 34kB
+  Buffers: shared hit=834
+  ->  HashAggregate  (cost=1028.23..1149.27 rows=6052 width=66) (actual time=4.051..4.090 rows=135 loops=1)
+        Group Key: (EXTRACT(year FROM a.accident_datetime))::integer, cc.category_name
+        Batches: 1  Memory Usage: 273kB
+        Buffers: shared hit=834
+        ->  Hash Join  (cost=3.10..967.71 rows=6052 width=31) (actual time=0.020..3.124 rows=6052 loops=1)
+              Hash Cond: (cd.cause_category_id = cc.cause_category_id)
+              Buffers: shared hit=834
+              ->  Hash Join  (cost=1.92..911.98 rows=6052 width=15) (actual time=0.010..1.946 rows=6052 loops=1)
+                    Hash Cond: (a.cause_detail_id = cd.cause_detail_id)
+                    Buffers: shared hit=833
+                    ->  Seq Scan on accident a  (cost=0.00..892.52 rows=6052 width=15) (actual time=0.001..0.530 rows=6052 loops=1)
+                          Buffers: shared hit=832
+                    ->  Hash  (cost=1.41..1.41 rows=41 width=4) (actual time=0.007..0.007 rows=41 loops=1)
+                          Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                          Buffers: shared hit=1
+                          ->  Seq Scan on cause_detail cd  (cost=0.00..1.41 rows=41 width=4) (actual time=0.001..0.004 rows=41 loops=1)
+                                Buffers: shared hit=1
+              ->  Hash  (cost=1.08..1.08 rows=8 width=24) (actual time=0.006..0.007 rows=8 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=1
+                    ->  Seq Scan on cause_category cc  (cost=0.00..1.08 rows=8 width=24) (actual time=0.003..0.004 rows=8 loops=1)
+                          Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=4
+Planning Time: 0.136 ms
+Execution Time: 4.160 ms

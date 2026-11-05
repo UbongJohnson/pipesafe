@@ -1,0 +1,50 @@
+-- bench / before / Q2
+SELECT o.operator_id, o.operator_name,
+       COUNT(DISTINCT a.report_number) AS accidents,
+       SUM(c.amount_usd)               AS total_cost_usd
+FROM accident_cost c
+JOIN accident a ON a.report_number = c.report_number
+JOIN operator o ON o.operator_id   = a.operator_id
+GROUP BY o.operator_id, o.operator_name
+ORDER BY total_cost_usd DESC
+LIMIT 10;
+
+Limit  (cost=714876.60..714876.63 rows=10 width=71) (actual time=2221.259..2221.368 rows=10 loops=1)
+  Buffers: shared hit=2261125 read=264915, temp read=1637 written=1645
+  ->  Sort  (cost=714876.60..714877.51 rows=361 width=71) (actual time=2145.069..2145.177 rows=10 loops=1)
+        Sort Key: (sum(c.amount_usd)) DESC
+        Sort Method: top-N heapsort  Memory: 26kB
+        Buffers: shared hit=2261125 read=264915, temp read=1637 written=1645
+        ->  GroupAggregate  (cost=111842.84..714868.80 rows=361 width=71) (actual time=317.610..2144.798 rows=361 loops=1)
+              Group Key: o.operator_id
+              Buffers: shared hit=2261125 read=264915, temp read=1637 written=1645
+              ->  Nested Loop  (cost=111842.84..687668.54 rows=3626100 width=43) (actual time=211.100..1856.240 rows=3626100 loops=1)
+                    Buffers: shared hit=2261125 read=264915, temp read=1637 written=1645
+                    ->  Merge Join  (cost=111842.41..190175.78 rows=607208 width=39) (actual time=211.075..370.993 rows=605200 loops=1)
+                          Merge Cond: (a.operator_id = o.operator_id)
+                          Buffers: shared hit=122 read=81292, temp read=1637 written=1645
+                          ->  Gather Merge  (cost=111841.55..182560.93 rows=607208 width=12) (actual time=211.034..313.951 rows=605200 loops=1)
+                                Workers Planned: 2
+                                Workers Launched: 2
+                                Buffers: shared hit=120 read=81288, temp read=1637 written=1645
+                                ->  Sort  (cost=110841.53..111474.04 rows=253003 width=12) (actual time=190.155..206.478 rows=201733 loops=3)
+                                      Sort Key: a.operator_id, a.report_number
+                                      Sort Method: external merge  Disk: 7360kB
+                                      Buffers: shared hit=120 read=81288, temp read=1637 written=1645
+                                      Worker 0:  Sort Method: external merge  Disk: 4128kB
+                                      Worker 1:  Sort Method: external merge  Disk: 1608kB
+                                      ->  Parallel Seq Scan on accident a  (cost=0.00..83810.03 rows=253003 width=12) (actual time=60.986..127.385 rows=201733 loops=3)
+                                            Buffers: shared read=81280
+                          ->  Index Scan using operator_pkey on operator o  (cost=0.15..24.56 rows=361 width=31) (actual time=0.011..0.172 rows=361 loops=1)
+                                Buffers: shared hit=2 read=4
+                    ->  Index Scan using accident_cost_pkey on accident_cost c  (cost=0.43..0.76 rows=6 width=12) (actual time=0.001..0.002 rows=6 loops=605200)
+                          Index Cond: (report_number = a.report_number)
+                          Buffers: shared hit=2261003 read=183623
+Planning:
+  Buffers: shared hit=7 read=16
+Planning Time: 0.329 ms
+JIT:
+  Functions: 20
+  Options: Inlining true, Optimization true, Expressions true, Deforming true
+  Timing: Generation 0.885 ms, Inlining 142.749 ms, Optimization 71.380 ms, Emission 45.003 ms, Total 260.017 ms
+Execution Time: 2222.673 ms

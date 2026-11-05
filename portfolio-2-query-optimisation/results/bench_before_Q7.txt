@@ -1,0 +1,74 @@
+-- bench / before / Q7
+SELECT s.state_code, COUNT(*) AS accidents
+FROM corrosion_detail d
+JOIN accident       a  ON a.report_number   = d.report_number
+JOIN cause_detail   cd ON cd.cause_detail_id = a.cause_detail_id
+JOIN county         co ON co.county_id       = a.county_id
+JOIN state          s  ON s.state_code       = co.state_code
+WHERE cd.detail_name = 'EXTERNAL CORROSION'
+  AND d.under_cathodic_protection = FALSE
+GROUP BY s.state_code
+ORDER BY accidents DESC;
+
+Sort  (cost=88369.17..88369.30 rows=52 width=11) (actual time=155.872..156.487 rows=8 loops=1)
+  Sort Key: (count(*)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=186784 read=76192
+  ->  Finalize GroupAggregate  (cost=88333.81..88367.69 rows=52 width=11) (actual time=155.720..156.482 rows=8 loops=1)
+        Group Key: s.state_code
+        Buffers: shared hit=186784 read=76192
+        ->  Gather Merge  (cost=88333.81..88366.65 rows=104 width=11) (actual time=155.656..156.473 rows=14 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=186784 read=76192
+              ->  Partial GroupAggregate  (cost=87333.78..87354.62 rows=52 width=11) (actual time=140.166..140.273 rows=5 loops=3)
+                    Group Key: s.state_code
+                    Buffers: shared hit=186784 read=76192
+                    ->  Merge Join  (cost=87333.78..87349.09 rows=1003 width=3) (actual time=140.141..140.230 rows=667 loops=3)
+                          Merge Cond: (co.state_code = s.state_code)
+                          Buffers: shared hit=186784 read=76192
+                          ->  Sort  (cost=87330.78..87333.29 rows=1003 width=3) (actual time=140.106..140.131 rows=667 loops=3)
+                                Sort Key: co.state_code
+                                Sort Method: quicksort  Memory: 67kB
+                                Buffers: shared hit=186781 read=76192
+                                Worker 0:  Sort Method: quicksort  Memory: 30kB
+                                Worker 1:  Sort Method: quicksort  Memory: 32kB
+                                ->  Nested Loop  (cost=31.93..87280.78 rows=1003 width=3) (actual time=15.755..140.020 rows=667 loops=3)
+                                      Buffers: shared hit=186773 read=76192
+                                      ->  Hash Join  (cost=31.51..84590.59 rows=6043 width=11) (actual time=0.662..107.204 rows=15133 loops=3)
+                                            Hash Cond: (a.county_id = co.county_id)
+                                            Buffers: shared hit=5171 read=76192
+                                            ->  Hash Join  (cost=1.53..84544.34 rows=6171 width=12) (actual time=0.487..105.110 rows=15833 loops=3)
+                                                  Hash Cond: (a.cause_detail_id = cd.cause_detail_id)
+                                                  Buffers: shared hit=5119 read=76192
+                                                  ->  Parallel Seq Scan on accident a  (cost=0.00..83810.03 rows=253003 width=14) (actual time=0.008..72.191 rows=201733 loops=3)
+                                                        Buffers: shared hit=5088 read=76192
+                                                  ->  Hash  (cost=1.51..1.51 rows=1 width=2) (actual time=0.012..0.013 rows=1 loops=3)
+                                                        Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                        Buffers: shared hit=3
+                                                        ->  Seq Scan on cause_detail cd  (cost=0.00..1.51 rows=1 width=2) (actual time=0.008..0.010 rows=1 loops=3)
+                                                              Filter: ((detail_name)::text = 'EXTERNAL CORROSION'::text)
+                                                              Rows Removed by Filter: 40
+                                                              Buffers: shared hit=3
+                                            ->  Hash  (cost=17.77..17.77 rows=977 width=7) (actual time=0.152..0.153 rows=977 loops=3)
+                                                  Buckets: 1024  Batches: 1  Memory Usage: 46kB
+                                                  Buffers: shared hit=24
+                                                  ->  Seq Scan on county co  (cost=0.00..17.77 rows=977 width=7) (actual time=0.007..0.070 rows=977 loops=3)
+                                                        Buffers: shared hit=24
+                                      ->  Index Scan using corrosion_detail_pkey on corrosion_detail d  (cost=0.42..0.45 rows=1 width=8) (actual time=0.002..0.002 rows=0 loops=45400)
+                                            Index Cond: (report_number = a.report_number)
+                                            Filter: (NOT under_cathodic_protection)
+                                            Rows Removed by Filter: 1
+                                            Buffers: shared hit=181602
+                          ->  Sort  (cost=3.00..3.13 rows=52 width=3) (actual time=0.031..0.033 rows=50 loops=3)
+                                Sort Key: s.state_code
+                                Sort Method: quicksort  Memory: 25kB
+                                Buffers: shared hit=3
+                                Worker 0:  Sort Method: quicksort  Memory: 25kB
+                                Worker 1:  Sort Method: quicksort  Memory: 25kB
+                                ->  Seq Scan on state s  (cost=0.00..1.52 rows=52 width=3) (actual time=0.015..0.018 rows=52 loops=3)
+                                      Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=36
+Planning Time: 0.408 ms
+Execution Time: 156.526 ms

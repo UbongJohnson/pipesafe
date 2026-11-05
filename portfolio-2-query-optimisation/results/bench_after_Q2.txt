@@ -1,0 +1,67 @@
+-- bench / after / Q2
+WITH accident_totals AS (
+    SELECT report_number, SUM(amount_usd) AS cost_usd
+    FROM accident_cost
+    GROUP BY report_number
+)
+SELECT o.operator_id, o.operator_name,
+       COUNT(*)        AS accidents,
+       SUM(t.cost_usd) AS total_cost_usd
+FROM accident_totals t
+JOIN accident a ON a.report_number = t.report_number
+JOIN operator o ON o.operator_id   = a.operator_id
+GROUP BY o.operator_id, o.operator_name
+ORDER BY total_cost_usd DESC
+LIMIT 10;
+
+Limit  (cost=325439.31..325439.33 rows=10 width=71) (actual time=1715.741..1716.557 rows=10 loops=1)
+  Buffers: shared hit=1871091 read=116975
+  ->  Sort  (cost=325439.31..325440.21 rows=361 width=71) (actual time=1707.528..1708.343 rows=10 loops=1)
+        Sort Key: (sum((sum(accident_cost.amount_usd)))) DESC
+        Sort Method: top-N heapsort  Memory: 26kB
+        Buffers: shared hit=1871091 read=116975
+        ->  Finalize GroupAggregate  (cost=325335.53..325431.51 rows=361 width=71) (actual time=1707.107..1708.249 rows=361 loops=1)
+              Group Key: o.operator_id
+              Buffers: shared hit=1871091 read=116975
+              ->  Gather Merge  (cost=325335.53..325419.77 rows=722 width=71) (actual time=1707.094..1707.995 rows=729 loops=1)
+                    Workers Planned: 2
+                    Workers Launched: 2
+                    Buffers: shared hit=1871091 read=116975
+                    ->  Sort  (cost=324335.51..324336.41 rows=361 width=71) (actual time=1683.262..1683.273 rows=243 loops=3)
+                          Sort Key: o.operator_id
+                          Sort Method: quicksort  Memory: 61kB
+                          Buffers: shared hit=1871091 read=116975
+                          Worker 0:  Sort Method: quicksort  Memory: 61kB
+                          Worker 1:  Sort Method: quicksort  Memory: 50kB
+                          ->  Partial HashAggregate  (cost=324315.66..324320.18 rows=361 width=71) (actual time=1683.147..1683.206 rows=243 loops=3)
+                                Group Key: o.operator_id
+                                Batches: 1  Memory Usage: 157kB
+                                Buffers: shared hit=1871077 read=116975
+                                Worker 0:  Batches: 1  Memory Usage: 157kB
+                                Worker 1:  Batches: 1  Memory Usage: 157kB
+                                ->  Hash Join  (cost=16.98..322483.69 rows=244263 width=63) (actual time=32.559..1653.653 rows=201733 loops=3)
+                                      Hash Cond: (a.operator_id = o.operator_id)
+                                      Buffers: shared hit=1871077 read=116975
+                                      ->  Merge Join  (cost=0.85..321818.85 rows=244263 width=36) (actual time=32.462..1619.668 rows=201733 loops=3)
+                                            Merge Cond: (a.report_number = accident_cost.report_number)
+                                            Buffers: shared hit=1871059 read=116969
+                                            ->  Parallel Index Scan using accident_pkey on accident a  (cost=0.42..95363.50 rows=252429 width=12) (actual time=0.025..119.968 rows=201733 loops=3)
+                                                  Buffers: shared hit=523 read=82984
+                                            ->  GroupAggregate  (cost=0.43..216053.76 rows=586231 width=40) (actual time=1.402..1411.508 rows=604211 loops=3)
+                                                  Group Key: accident_cost.report_number
+                                                  Buffers: shared hit=1870536 read=33985
+                                                  ->  Index Scan using accident_cost_pkey on accident_cost  (cost=0.43..190595.37 rows=3626100 width=12) (actual time=1.384..687.717 rows=3620169 loops=3)
+                                                        Buffers: shared hit=1870536 read=33985
+                                      ->  Hash  (cost=11.61..11.61 rows=361 width=31) (actual time=0.086..0.087 rows=361 loops=3)
+                                            Buckets: 1024  Batches: 1  Memory Usage: 31kB
+                                            Buffers: shared hit=18 read=6
+                                            ->  Seq Scan on operator o  (cost=0.00..11.61 rows=361 width=31) (actual time=0.016..0.052 rows=361 loops=3)
+                                                  Buffers: shared hit=18 read=6
+Planning:
+  Buffers: shared hit=2 read=13
+Planning Time: 0.320 ms
+JIT:
+  Functions: 70
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 2.298 ms, Inlining 0.000 ms, Optimization 1.021 ms, Emission 28.049 ms, Total 31.368 ms
+Execution Time: 1717.921 ms

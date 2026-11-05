@@ -1,0 +1,23 @@
+-- bench / before / Q4
+SELECT a.report_number, a.accident_datetime, a.report_type,
+       a.unintentional_release_bbls, a.recovered_bbls
+FROM accident a
+WHERE a.operator_id = 31684
+ORDER BY a.accident_datetime DESC;
+
+Gather Merge  (cost=86015.77..88058.51 rows=17508 width=42) (actual time=86.314..92.863 rows=21500 loops=1)
+  Workers Planned: 2
+  Workers Launched: 2
+  Buffers: shared hit=2032 read=79360
+  ->  Sort  (cost=85015.74..85037.63 rows=8754 width=42) (actual time=73.559..73.856 rows=7167 loops=3)
+        Sort Key: accident_datetime DESC
+        Sort Method: quicksort  Memory: 1108kB
+        Buffers: shared hit=2032 read=79360
+        Worker 0:  Sort Method: quicksort  Memory: 557kB
+        Worker 1:  Sort Method: quicksort  Memory: 618kB
+        ->  Parallel Seq Scan on accident a  (cost=0.00..84442.54 rows=8754 width=42) (actual time=0.572..72.484 rows=7167 loops=3)
+              Filter: (operator_id = 31684)
+              Rows Removed by Filter: 194567
+              Buffers: shared hit=1920 read=79360
+Planning Time: 0.049 ms
+Execution Time: 93.577 ms

@@ -1,0 +1,9 @@
+Write cost of the new indexes (sql/04_write_cost.sql)
+Insert 6,052 accidents into bench.accident (605,200 existing rows), 3 runs each
+
+Scenario                                   Run 1      Run 2      Run 3      Median
+A. All six new indexes                     1,947 ms   1,805 ms   1,667 ms   1,805 ms
+B. Five B-tree indexes (no trigram index)     93 ms      76 ms      74 ms      76 ms
+C. None of the new indexes                    41 ms      45 ms      40 ms      41 ms
+
+Environment: PostgreSQL 16.15, 2 CPU cores, 7 GB RAM, default settings.

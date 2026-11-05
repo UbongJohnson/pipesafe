@@ -1,0 +1,20 @@
+-- pipesafe / after / Q4
+SELECT a.report_number, a.accident_datetime, a.report_type,
+       a.unintentional_release_bbls, a.recovered_bbls
+FROM accident a
+WHERE a.operator_id = 31684
+ORDER BY a.accident_datetime DESC;
+
+Sort  (cost=506.42..506.96 rows=215 width=42) (actual time=0.107..0.115 rows=215 loops=1)
+  Sort Key: accident_datetime DESC
+  Sort Method: quicksort  Memory: 40kB
+  Buffers: shared hit=192
+  ->  Bitmap Heap Scan on accident a  (cost=5.95..498.09 rows=215 width=42) (actual time=0.015..0.081 rows=215 loops=1)
+        Recheck Cond: (operator_id = 31684)
+        Heap Blocks: exact=189
+        Buffers: shared hit=192
+        ->  Bitmap Index Scan on idx_accident_operator_date  (cost=0.00..5.89 rows=215 width=0) (actual time=0.006..0.006 rows=215 loops=1)
+              Index Cond: (operator_id = 31684)
+              Buffers: shared hit=3
+Planning Time: 0.017 ms
+Execution Time: 0.125 ms
