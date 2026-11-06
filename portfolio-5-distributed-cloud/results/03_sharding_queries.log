@@ -126,4 +126,3 @@ FROM dist.accident_by_region;
  by region              |    3682 |    2370
  by hash(report_number) |    3029 |    3023
 (2 rows)
-

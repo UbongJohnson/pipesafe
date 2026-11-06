@@ -1,5 +1,5 @@
-PipeSafe replication demonstrations - 2026-11-01 04:58:04
-PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+PipeSafe replication demonstrations - 2026-11-06 06:29:46
+PostgreSQL 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0, 64-bit
 
 ==============================================================================
 R1: Replication status
@@ -14,7 +14,7 @@ R2: Asynchronous replication: time until a write is visible on the standby
 read immediately, then polled until the new report appears.
 ==============================================================================
 Immediate read on standby missed the new row: 20 of 20 times (stale reads)
-Time until visible on standby: median 0.91 ms, max 1.17 ms
+Time until visible on standby: median 6.26 ms, max 10.94 ms
 
 ==============================================================================
 R3: The standby is read-only
@@ -26,7 +26,7 @@ R4: Synchronous replication (synchronous_commit = remote_apply)
 COMMIT on the primary now waits until the standby has APPLIED the change.
 ==============================================================================
 sync_state now: sync
-Median single-insert commit time: asynchronous 0.43 ms, synchronous (remote_apply) 0.81 ms  (1.9x slower)
+Median single-insert commit time: asynchronous 8.72 ms, synchronous (remote_apply) 10.90 ms  (1.3x slower)
 Immediate read on standby missed the new row: 0 of 20 times
 
 ==============================================================================
@@ -41,9 +41,9 @@ DETAIL:  The transaction has already committed locally, but might not have been 
 row exists on primary: True (committed locally, NOT confirmed on any replica)
 
 Choosing availability instead: switch back to asynchronous replication
-INSERT with the standby still down: committed in 3.0 ms
+INSERT with the standby still down: committed in 28.8 ms
 restarting standby: server started
-standby caught up with the writes it missed in 1 ms (both test rows present: True)
+standby caught up with the writes it missed in 198 ms (both test rows present: True)
 
 ==============================================================================
 R6: Failover: the primary crashes and the standby is promoted
@@ -53,6 +53,6 @@ crash primary (immediate stop): server stopped
 connect to primary -> connection to server on socket "/tmp/.s.PGSQL.5601" failed: No such file or directory
 write to standby before promotion -> ERROR:  cannot execute INSERT in a read-only transaction
 promote standby: SELECT pg_promote() -> True
-write on the NEW primary (port 5602) succeeded 0.11 s after the crash
+write on the NEW primary (port 5602) succeeded 0.76 s after the crash
 new primary: in recovery = False, accidents = 6196, last pre-crash report present = True
 test rows removed; accidents now 6052

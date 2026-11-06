@@ -1,0 +1,11 @@
+1. Primary (port 5601)
+  started primary on port 5601
+2. Load the Portfolio 1 database into the primary now, then press Enter.
+   (from portfolio-1-database-design:  psql -h /tmp -p 5601 -U postgres -d pipesafe -f sql/01_create_tables.sql
+                                        psql -h /tmp -p 5601 -U postgres -d pipesafe -f sql/02_load_data.sql)
+3. Standby (port 5602): copy the primary with pg_basebackup, then stream changes
+  started standby on port 5602
+4. Shard servers (ports 5603, 5604)
+  started shard_a on port 5603
+  started shard_b on port 5604
+Done. Cluster folder: /home/kefe/pipesafe-cluster

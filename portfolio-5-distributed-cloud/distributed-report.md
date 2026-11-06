@@ -2,7 +2,7 @@
 
 This portfolio takes the PipeSafe database from one server to several. It demonstrates **replication** (copies for availability and read capacity), **failover** (surviving the loss of the main server) and **sharding** (splitting data across servers by region). It measures the **consistency vs availability trade-offs** between them.
 
-Everything below was run on a real multi-server PostgreSQL 16 cluster. The outputs are in `results/`.
+Everything below was run on a real multi-server PostgreSQL 18.6 cluster (Ubuntu 26.04 under WSL 2 on an Intel Core i7-6500U laptop). The outputs are in `results/`.
 
 ## 1. Why PipeSafe Needs More Than One Server
 
@@ -59,9 +59,9 @@ By default, a `COMMIT` on the primary returns **before** the standby has the cha
 | Measure | Result |
 |---|---|
 | Immediate read on the standby found the new report | **0 of 20** (every immediate read was stale) |
-| Time until the report appeared on the standby | median **0.91 ms**, max 1.17 ms |
+| Time until the report appeared on the standby | median **6.26 ms**, max 10.94 ms |
 
-The delay is tiny on one machine. Across a real network it is larger, and it grows under heavy load. Any application reading from a replica must accept that it may be slightly behind: an operator who submits a report and immediately searches the replica might not find it yet.
+The delay is small here because all four servers share one machine. Across a real network it is larger, and it grows under heavy load. Any application reading from a replica must accept that it may be slightly behind: an operator who submits a report and immediately searches the replica might not find it yet.
 
 ### R3: The standby cannot be written to
 
@@ -76,10 +76,10 @@ With `synchronous_standby_names = '*'` and `synchronous_commit = 'remote_apply'`
 
 | | Asynchronous | Synchronous (`remote_apply`) |
 |---|---|---|
-| Median commit time per report | 0.43 ms | 0.81 ms (**1.9× slower**) |
+| Median commit time per report | 8.72 ms | 10.90 ms (**1.3× slower**) |
 | Stale immediate reads on the standby | 20 of 20 | **0 of 20** |
 
-Every commit now pays for a round trip to the standby. Here that is less than half a millisecond; between data centres it could be several milliseconds per commit.
+Every commit now pays for a round trip to the standby. Here that added about 2 ms; between data centres it could be several milliseconds per commit.
 
 ### R5: When the standby fails, choose consistency or availability
 
@@ -93,7 +93,7 @@ DETAIL:  The transaction has already committed locally, but might not have been 
 
 **The primary would not complete the commit.** It refused to promise a write that existed on only one server, so the database was **unavailable for writes** while the standby was down. This is consistency chosen over availability.
 
-Switching back to asynchronous replication (`ALTER SYSTEM RESET synchronous_standby_names`) made the next insert complete in **3.0 ms**, with the standby still down. Availability returned, but that report existed on one server only until the standby came back. When the standby was restarted, it caught up automatically using its replication slot, and both test reports were present.
+Switching back to asynchronous replication (`ALTER SYSTEM RESET synchronous_standby_names`) made the next insert complete in **28.8 ms**, with the standby still down. Availability returned, but that report existed on one server only until the standby came back. When the standby was restarted, it caught up automatically using its replication slot within 198 ms, and both test reports were present.
 
 ### R6: Failover — the primary crashes
 
@@ -102,16 +102,16 @@ crash primary (immediate stop): server stopped
 connect to primary -> connection to server on socket "/tmp/.s.PGSQL.5601" failed
 write to standby before promotion -> ERROR:  cannot execute INSERT in a read-only transaction
 promote standby: SELECT pg_promote() -> True
-write on the NEW primary (port 5602) succeeded 0.11 s after the crash
+write on the NEW primary (port 5602) succeeded 0.76 s after the crash
 new primary: in recovery = False, accidents = 6196, last pre-crash report present = True
 ```
 
 | Recovery measure | Result |
 |---|---|
 | **RPO** (data lost) | **None.** The last report committed before the crash was on the new primary. |
-| **RTO** (time to accept writes again) | **0.11 s** from crash to the first successful write, *after* the decision to promote |
+| **RTO** (time to accept writes again) | **0.76 s** from crash to the first successful write, *after* the decision to promote |
 
-The 0.11 s does not include *detecting* the failure, which was instant here because the script caused it. In production a tool such as Patroni, or a managed cloud service, watches the primary, waits a configured time to avoid false alarms, then promotes automatically. RPO is only zero if the standby had received everything. With asynchronous replication, the last few milliseconds of commits could be lost in a real crash (R2).
+The 0.76 s does not include *detecting* the failure, which was instant here because the script caused it. In production a tool such as Patroni, or a managed cloud service, watches the primary, waits a configured time to avoid false alarms, then promotes automatically. RPO is only zero if the standby had received everything. With asynchronous replication, the last few milliseconds of commits could be lost in a real crash (R2).
 
 ## 4. Consistency, Availability and the CAP Theorem
 
@@ -125,10 +125,10 @@ The measurements show both:
 
 | Situation | Choice | Evidence |
 |---|---|---|
-| Normal operation, asynchronous | Low latency, weaker consistency (replica may be stale) | R2: 20/20 immediate reads stale; 0.43 ms commits |
-| Normal operation, synchronous | Strong consistency, higher latency | R4: 0/20 stale; 0.81 ms commits |
+| Normal operation, asynchronous | Low latency, weaker consistency (replica may be stale) | R2: 20/20 immediate reads stale; 8.72 ms commits |
+| Normal operation, synchronous | Strong consistency, higher latency | R4: 0/20 stale; 10.90 ms commits |
 | Standby unreachable, synchronous | **CP**: consistent but unavailable for writes | R5: commit blocked |
-| Standby unreachable, asynchronous | **AP**: available but writes are not yet replicated | R5: commit in 3.0 ms |
+| Standby unreachable, asynchronous | **AP**: available but writes are not yet replicated | R5: commit in 28.8 ms |
 
 **PipeSafe's choice:**
 - **Accident reports use synchronous replication.** They are legal records, so losing one is worse than a short delay. Writes are rare (about one a day on average), so the extra latency costs almost nothing.
@@ -175,7 +175,7 @@ Async Foreign Scan
   Remote SQL: SELECT region, cause_category, count(*), sum(total_cost_usd)
               FROM public.accident_shard GROUP BY 1, 2
 ```
-This sends a few dozen summary rows over the network instead of thousands of detail rows. In PostgreSQL 16, this pushdown only happens when the grouping includes the partition key. That is a reason to choose a shard key that matches common reporting queries.
+This sends a few dozen summary rows over the network instead of thousands of detail rows. In PostgreSQL 16 and 18 (both runs gave identical plans), this pushdown only happens when the grouping includes the partition key. That is a reason to choose a shard key that matches common reporting queries.
 
 **Inserts are routed automatically.** A new Louisiana report inserted through the coordinator landed on shard_a (1 row) and not on shard_b (0 rows).
 
@@ -222,10 +222,10 @@ Result (`results/atlas_replica_check.log`, MongoDB 8.0.37): 3 members with one p
 | Demo | Result |
 |---|---|
 | Initial replication | 6,052 accidents / $4,619,299,360 identical on primary and standby |
-| Async replication delay | median 0.91 ms; 20/20 immediate replica reads stale |
-| Sync replication | 0/20 stale reads; commits 1.9× slower (0.43 → 0.81 ms) |
+| Async replication delay | median 6.26 ms; 20/20 immediate replica reads stale |
+| Sync replication | 0/20 stale reads; commits 1.3× slower (8.72 → 10.90 ms) |
 | Standby down + sync | Writes blocked (consistency over availability) |
-| Standby down + async | Write in 3.0 ms (availability over consistency); standby caught up on restart |
-| Failover | RPO 0, writes accepted 0.11 s after the crash on the promoted standby |
+| Standby down + async | Write in 28.8 ms (availability over consistency); standby caught up on restart |
+| Failover | RPO 0, writes accepted 0.76 s after the crash on the promoted standby |
 | Sharding | 3,682 / 2,370 rows; regional query hits 1 shard; totals match exactly |
 | Hash vs region sharding | 3,029 / 3,023 (even) vs 3,682 / 2,370 (skewed but region-local) |

@@ -1,16 +1,15 @@
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;
-psql:sql/02_coordinator.sql:9: NOTICE:  extension "postgres_fdw" already exists, skipping
 CREATE EXTENSION
 DROP SCHEMA IF EXISTS dist CASCADE;
-psql:sql/02_coordinator.sql:10: NOTICE:  drop cascades to table dist.accident_by_region
+psql:sql/02_coordinator.sql:10: NOTICE:  schema "dist" does not exist, skipping
 DROP SCHEMA
 CREATE SCHEMA dist;
 CREATE SCHEMA
 DROP SERVER IF EXISTS shard_a CASCADE;
-psql:sql/02_coordinator.sql:13: NOTICE:  drop cascades to user mapping for postgres on server shard_a
+psql:sql/02_coordinator.sql:13: NOTICE:  server "shard_a" does not exist, skipping
 DROP SERVER
 DROP SERVER IF EXISTS shard_b CASCADE;
-psql:sql/02_coordinator.sql:14: NOTICE:  drop cascades to user mapping for postgres on server shard_b
+psql:sql/02_coordinator.sql:14: NOTICE:  server "shard_b" does not exist, skipping
 DROP SERVER
 CREATE SERVER shard_a FOREIGN DATA WRAPPER postgres_fdw
     OPTIONS (host '/tmp', port '5603', dbname 'pipesafe_shard', async_capable 'true');

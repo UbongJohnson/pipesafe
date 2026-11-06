@@ -1,0 +1,128 @@
+=== 1. Rows per shard (data distribution) ===
+SELECT 'shard_a (SOUTH)' AS shard, COUNT(*) AS accidents FROM dist.accident_south
+UNION ALL
+SELECT 'shard_b (all other regions)', COUNT(*) FROM dist.accident_other;
+            shard            | accidents 
+-----------------------------+-----------
+ shard_a (SOUTH)             |      3682
+ shard_b (all other regions) |      2370
+(2 rows)
+
+=== 2. Same total as the unsharded database? (expect 6052 / 4619299360.00) ===
+SELECT COUNT(*) AS accidents, SUM(total_cost_usd) AS total_cost_usd FROM dist.accident_by_region;
+ accidents | total_cost_usd 
+-----------+----------------
+      6052 |  4619299360.00
+(1 row)
+
+=== 3. Single-shard query: Texas accidents in 2023 (partition pruning) ===
+EXPLAIN (VERBOSE, COSTS OFF)
+SELECT report_number, accident_datetime, unintentional_release_bbls
+FROM dist.accident_by_region
+WHERE region = 'SOUTH' AND state_code = 'TX'
+  AND accident_datetime >= '2023-01-01' AND accident_datetime < '2024-01-01';
+                                                                                                                               QUERY PLAN                                                                                                                               
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Foreign Scan on dist.accident_south accident_by_region
+   Output: accident_by_region.report_number, accident_by_region.accident_datetime, accident_by_region.unintentional_release_bbls
+   Remote SQL: SELECT report_number, accident_datetime, unintentional_release_bbls FROM public.accident_shard WHERE ((accident_datetime >= '2023-01-01 00:00:00')) AND ((accident_datetime < '2024-01-01 00:00:00')) AND ((region = 'SOUTH')) AND ((state_code = 'TX'))
+(3 rows)
+
+SELECT COUNT(*) AS tx_2023_accidents
+FROM dist.accident_by_region
+WHERE region = 'SOUTH' AND state_code = 'TX'
+  AND accident_datetime >= '2023-01-01' AND accident_datetime < '2024-01-01';
+ tx_2023_accidents 
+-------------------
+               147
+(1 row)
+
+=== 4a. Cross-shard query: cost by cause category (scatter-gather) ===
+    Default: every shard sends ALL its rows; the coordinator does the grouping.
+SET enable_partitionwise_aggregate = off;
+SET
+EXPLAIN (VERBOSE, COSTS OFF)
+SELECT cause_category, COUNT(*), SUM(total_cost_usd)
+FROM dist.accident_by_region GROUP BY cause_category;
+                                           QUERY PLAN                                           
+------------------------------------------------------------------------------------------------
+ HashAggregate
+   Output: accident_by_region.cause_category, count(*), sum(accident_by_region.total_cost_usd)
+   Group Key: accident_by_region.cause_category
+   ->  Append
+         ->  Async Foreign Scan on dist.accident_south accident_by_region_1
+               Output: accident_by_region_1.cause_category, accident_by_region_1.total_cost_usd
+               Remote SQL: SELECT cause_category, total_cost_usd FROM public.accident_shard
+         ->  Async Foreign Scan on dist.accident_other accident_by_region_2
+               Output: accident_by_region_2.cause_category, accident_by_region_2.total_cost_usd
+               Remote SQL: SELECT cause_category, total_cost_usd FROM public.accident_shard
+(10 rows)
+
+=== 4b. Grouping that includes the shard key, with partition-wise aggregation ===
+    Each shard does its own GROUP BY and sends back only its totals.
+    (PostgreSQL 16 only pushes a GROUP BY to the shards when it includes
+     the partition key, here region.)
+SET enable_partitionwise_aggregate = on;
+SET
+EXPLAIN (VERBOSE, COSTS OFF)
+SELECT region, cause_category, COUNT(*), SUM(total_cost_usd)
+FROM dist.accident_by_region GROUP BY region, cause_category;
+                                                                QUERY PLAN                                                                
+------------------------------------------------------------------------------------------------------------------------------------------
+ Append
+   ->  Async Foreign Scan
+         Output: accident_by_region.region, accident_by_region.cause_category, (count(*)), (sum(accident_by_region.total_cost_usd))
+         Relations: Aggregate on (dist.accident_south accident_by_region)
+         Remote SQL: SELECT region, cause_category, count(*), sum(total_cost_usd) FROM public.accident_shard GROUP BY 1, 2
+   ->  Async Foreign Scan
+         Output: accident_by_region_1.region, accident_by_region_1.cause_category, (count(*)), (sum(accident_by_region_1.total_cost_usd))
+         Relations: Aggregate on (dist.accident_other accident_by_region_1)
+         Remote SQL: SELECT region, cause_category, count(*), sum(total_cost_usd) FROM public.accident_shard GROUP BY 1, 2
+(9 rows)
+
+SELECT cause_category, COUNT(*) AS accidents, SUM(total_cost_usd) AS total_cost_usd
+FROM dist.accident_by_region GROUP BY cause_category ORDER BY total_cost_usd DESC;
+          cause_category          | accidents | total_cost_usd 
+----------------------------------+-----------+----------------
+ MATERIAL FAILURE OF PIPE OR WELD |       406 |  2223458394.00
+ CORROSION FAILURE                |      1328 |   757212348.00
+ EQUIPMENT FAILURE                |      2759 |   423649445.00
+ NATURAL FORCE DAMAGE             |       264 |   350161081.00
+ INCORRECT OPERATION              |       834 |   275470769.00
+ EXCAVATION DAMAGE                |       199 |   260482126.00
+ OTHER OUTSIDE FORCE DAMAGE       |       128 |   201802585.00
+ OTHER ACCIDENT CAUSE             |       134 |   127062612.00
+(8 rows)
+
+RESET enable_partitionwise_aggregate;
+RESET
+=== 5. Routing on insert: a new Louisiana report goes to shard_a ===
+INSERT INTO dist.accident_by_region VALUES
+    (99995100, 'SOUTH', 'LA', '2026-10-30 07:45', 31684, 'CORROSION FAILURE', 12, 10, 25000);
+INSERT 0 1
+SELECT 'shard_a' AS shard, COUNT(*) FROM dist.accident_south WHERE report_number = 99995100
+UNION ALL
+SELECT 'shard_b', COUNT(*) FROM dist.accident_other WHERE report_number = 99995100;
+  shard  | count 
+---------+-------
+ shard_a |     1
+ shard_b |     0
+(2 rows)
+
+DELETE FROM dist.accident_by_region WHERE report_number = 99995100;
+DELETE 1
+=== 6. Skew check: region sharding vs hash sharding on report_number ===
+SELECT 'by region' AS strategy,
+       SUM(CASE WHEN region = 'SOUTH' THEN 1 ELSE 0 END) AS shard_a,
+       SUM(CASE WHEN region <> 'SOUTH' THEN 1 ELSE 0 END) AS shard_b
+FROM dist.accident_by_region
+UNION ALL
+SELECT 'by hash(report_number)',
+       SUM(CASE WHEN abs(hashint8(report_number)) % 2 = 0 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN abs(hashint8(report_number)) % 2 = 1 THEN 1 ELSE 0 END)
+FROM dist.accident_by_region;
+        strategy        | shard_a | shard_b 
+------------------------+---------+---------
+ by region              |    3682 |    2370
+ by hash(report_number) |    3029 |    3023
+(2 rows)

@@ -1,0 +1,15 @@
+psql:sql/01_create_tables.sql:8: NOTICE:  schema "pipesafe" does not exist, skipping
+ setval 
+--------
+   4015
+(1 row)
+
+ setval 
+--------
+    977
+(1 row)
+
+ accidents_on_primary 
+----------------------
+                 6052
+(1 row)

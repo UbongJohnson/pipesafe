@@ -14,4 +14,3 @@ Direct query on each shard server (bypassing the coordinator)
  UNKNOWN   |        99
  TERRITORY |         1
 (5 rows)
-

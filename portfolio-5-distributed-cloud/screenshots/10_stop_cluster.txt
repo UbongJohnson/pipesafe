@@ -1,0 +1,9 @@
+waiting for server to shut down.... done
+server stopped
+stopped standby
+waiting for server to shut down.... done
+server stopped
+stopped shard_a
+waiting for server to shut down.... done
+server stopped
+stopped shard_b

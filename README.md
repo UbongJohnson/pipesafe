@@ -39,7 +39,7 @@ python3 run_and_capture.py --portfolios 5 --data /mnt/c/PATH/TO/accident_hazardo
 
 ## Tools
 
-- **PostgreSQL 18:** relational database (Portfolios 1-3). The Portfolio 5 replication and `postgres_fdw` sharding results were recorded on a PostgreSQL 16 cluster in Linux
+- **PostgreSQL 18:** relational database (Portfolios 1-3), and the Portfolio 5 replication and `postgres_fdw` sharding cluster (Ubuntu under WSL)
 - **Python 3:** pandas (data preparation), psycopg2 (PostgreSQL), pymongo (MongoDB)
 - **MongoDB Atlas:** document database and cloud replica set (Portfolios 4 and 5)
 - **dbdiagram.io:** ER diagram

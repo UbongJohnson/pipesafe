@@ -1,0 +1,16 @@
+Direct query on each shard server (bypassing the coordinator)
+--- port 5603
+ region | accidents 
+--------+-----------
+ SOUTH  |      3682
+(1 row)
+
+--- port 5604
+  region   | accidents 
+-----------+-----------
+ MIDWEST   |      1198
+ WEST      |       814
+ NORTHEAST |       258
+ UNKNOWN   |        99
+ TERRITORY |         1
+(5 rows)

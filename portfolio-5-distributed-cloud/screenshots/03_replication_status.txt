@@ -1,0 +1,11 @@
+--- primary (5601)
+ application_name |   state   | sync_state |   replay_lag    
+------------------+-----------+------------+-----------------
+ walreceiver      | streaming | async      | 00:00:00.014246
+(1 row)
+
+--- standby (5602)
+ read_only_replica | accidents 
+-------------------+-----------
+ t                 |      6052
+(1 row)
